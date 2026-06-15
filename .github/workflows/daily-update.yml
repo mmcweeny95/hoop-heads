@@ -1,0 +1,39 @@
+name: Daily Dashboard Update
+
+on:
+  schedule:
+    # Runs every day at 7:00 AM Eastern (11:00 UTC)
+    - cron: '0 11 * * *'
+  # Also lets you run it manually from GitHub's Actions tab
+  workflow_dispatch:
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch live data and rebuild dashboard
+        env:
+          BDL_API_KEY: ${{ secrets.BDL_API_KEY }}
+          SLEEPER_LEAGUE_ID: "1348512479650545664"
+        run: python update_dashboard.py
+
+      - name: Commit updated dashboard
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          # Only commit if something actually changed
+          git diff --staged --quiet || git commit -m "Daily update $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
