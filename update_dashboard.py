@@ -181,15 +181,32 @@ def patch_html(rosters, live_stats, player_lookup):
     with open(TEMPLATE, "r", encoding="utf-8") as f:
         html = f.read()
 
-    # ── 1. Inject last-updated timestamp ─────────────────────────────────────
+    # ── 1. Inject timestamps ──────────────────────────────────────────────────
     from datetime import datetime, timezone
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    now_iso = datetime.now(timezone.utc).isoformat()
+
     # Replace or insert the auto-update timestamp in the header subtitle
     html = re.sub(
         r'(12-team NBA dynasty[^<"]*)',
         rf'12-team NBA dynasty · Auto-updated {ts}',
         html, count=1
     )
+
+    # Inject roster refresh timestamp into sentinel variable
+    html = re.sub(
+        r'var LAST_ROSTER_REFRESH = .*?;',
+        f'var LAST_ROSTER_REFRESH = "{now_iso}";',
+        html, count=1
+    )
+
+    # Inject stats refresh timestamp if we actually fetched stats
+    if live_stats:
+        html = re.sub(
+            r'var LAST_STATS_REFRESH  = .*?;',
+            f'var LAST_STATS_REFRESH  = "{now_iso}";',
+            html, count=1
+        )
 
     # ── 2. Inject live stats into STATS object ────────────────────────────────
     if live_stats:

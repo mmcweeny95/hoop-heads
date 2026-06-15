@@ -45,6 +45,12 @@ function calcFP(s){
 }
 
 // ── REAL 2025-26 STATS ──────────────────────────────────────────────────────
+// ── AUTO-INJECTED TIMESTAMPS (updated by GitHub Actions on each run) ──────────
+// Python update script replaces these lines with real ISO timestamps
+var LAST_ROSTER_REFRESH = null;
+var LAST_STATS_REFRESH  = null;
+// ─────────────────────────────────────────────────────────────────────────────
+
 const STATS={
   // 2025-26 NBA Regular Season final stats (verified from landofbasketball.com, fantasyteamadvice.com)
   "Luka Doncic":              {pts:33.5,reb:8.9,ast:8.3,stl:1.6,blk:0.5,tpm:4.0,to:3.8,gp:64},
@@ -1914,7 +1920,23 @@ async function refreshRosters(customPlayers){
   }
   // Fetch traded picks from Sleeper
   const livePicks = await fetchTradedPicks(rosterUserMap);
-  return{players:updated,unknownCount:unknownIds.size,livePicks:livePicks};
+
+  // Extract standings (W/L/PTS) from roster settings
+  const standings = {};
+  rosters.forEach(function(roster){
+    const teamName = rosterUserMap[String(roster.roster_id)];
+    if(!teamName) return;
+    const s = roster.settings || {};
+    standings[teamName] = {
+      w:   s.wins   || 0,
+      l:   s.losses || 0,
+      t:   s.ties   || 0,
+      pf:  Math.round(((s.fpts || 0) + (s.fpts_decimal || 0) * 0.01) * 100) / 100,
+      pa:  Math.round(((s.fpts_against || 0) + (s.fpts_against_decimal || 0) * 0.01) * 100) / 100,
+    };
+  });
+
+  return{players:updated,unknownCount:unknownIds.size,livePicks:livePicks,standings:standings};
 }
 
 // ── STYLE HELPERS ─────────────────────────────────────────────────────────────
@@ -2094,13 +2116,16 @@ function App(){
   const [tab,setTab]=useState("teams");
 
   // Countdown handled by CountdownBanner component (outside App to prevent re-renders)
-  const [apiKey,setApiKey]=useState("");
+  const [apiKey,setApiKey]=useState("26eb1c4f-fbb5-4375-9839-233c9a18a38f");
   const [showApiKeyModal,setShowApiKeyModal]=useState(false);
   const [liveStats,setLiveStats]=useState(null);     // overrides STATS when set
   const [statsRefreshing,setStatsRefreshing]=useState(false);
   const [statsMsg,setStatsMsg]=useState("");
   const [statsProgress,setStatsProgress]=useState({done:0,total:0});
-  const [lastStatsRefresh,setLastStatsRefresh]=useState(null);
+  const [lastStatsRefresh,setLastStatsRefresh]=useState(function(){
+    try{ return LAST_STATS_REFRESH ? new Date(LAST_STATS_REFRESH) : null; }
+    catch(e){ return null; }
+  });
 
   // Override STATS lookup with live stats when available
   const getStatsForPlayer = function(name){
@@ -2139,8 +2164,13 @@ function App(){
   const [customPlayers,setCustomPlayers]=useState([]);
   const [refreshing,setRefreshing]=useState(false);
   const [livePickData,setLivePickData]=useState(null);
+  const [liveStandings,setLiveStandings]=useState(null);
   const [refreshMsg,setRefreshMsg]=useState("");
-  const [lastRefresh,setLastRefresh]=useState(null);
+  const [lastRefresh,setLastRefresh]=useState(function(){
+    // Pre-populate from GitHub Actions timestamp if available
+    try{ return LAST_ROSTER_REFRESH ? new Date(LAST_ROSTER_REFRESH) : null; }
+    catch(e){ return null; }
+  });
   const [modal,setModal]=useState(null); // player detail
   const [addModal,setAddModal]=useState(null); // null=hidden, {}=new, player=edit
   const [selTeam,setSelTeam]=useState(null);
@@ -2236,9 +2266,14 @@ function App(){
       setLiveRosters(result.players);
       setLastRefresh(new Date());
       if(result.livePicks) setLivePickData(result.livePicks);
+      if(result.standings && Object.keys(result.standings).length > 0){
+        setLiveStandings(result.standings);
+      }
       const u=result.unknownCount;
-      const pickMsg=result.livePicks?" · Draft capital updated":"";
-      setRefreshMsg(u>0?"✓ Synced · "+result.players.length+" players · "+u+" unknown"+(u>1?"s":"")+" — yellow badges"+pickMsg:"✓ Rosters synced · "+result.players.length+" players"+pickMsg);
+      const hasStandings = result.standings && Object.values(result.standings).some(function(s){return s.w>0||s.l>0;});
+      const pickMsg=result.livePicks?" · Picks live":"";
+      const standingsMsg=hasStandings?" · Standings synced":"";
+      setRefreshMsg(u>0?"✓ Synced · "+result.players.length+" players · "+u+" unknown"+(u>1?"s":"")+" — yellow badges"+pickMsg+standingsMsg:"✓ Rosters synced · "+result.players.length+" players"+pickMsg+standingsMsg);
       setTimeout(function(){setRefreshMsg("");},6000);
       setShowManual(false);
     }catch(e){
@@ -3825,367 +3860,306 @@ function App(){
 
 
 
-  // ── WESTERNУ TRADE PROPOSALS TAB ──────────────────────────────────────────
-  function TradeProposalsTab(){
-    const [exp, setExp] = useState(null);
-
-    const TRADES = [
-      {
-        id:1, grade:"A+", gradeColor:"#14532d", gradeBg:"#dcfce7",
-        title:"Cheapest Path",
-        to:"Richmond Oilers",
-        target:{name:"Isaiah Hartenstein",dyn:58,age:28,pos:"C",
-          blk:0.8,reb:9.4,gp:68,
-          note:"Proven starter-level C — 9.4 reb/g, high IQ, immediate contributor. Fits perfectly next to Trae Young's playmaking. At 28 his dynasty window matches WesternU's."},
-        sends:[
-          {type:"player",name:"Christian Braun",  val:40,age:25,note:"Hustle wing, useful filler Richmond can use"},
-          {type:"pick",  name:"2026 Rd2 #2.08",   val:11,note:"Near-term known-slot pick"},
-          {type:"pick",  name:"2028 Rd3 (own)",   val:4, note:"Own 3rd rounder"},
-        ],
-        sent:55, got:58,
-        analysis:"WesternU actually WINS this trade — sending 55 value to receive 58. Richmond are deep rebuilding around SGA+Maxey+Wagner and Hartenstein doesn't fit a 5-year rebuild timeline. WesternU preserves all top assets: Claxton, Dylan Harper, Coby White and the Hickory 2028 Rd2. Best deal on this list.",
-      },
-      {
-        id:2, grade:"A", gradeColor:"#1e3a8a", gradeBg:"#dbeafe",
-        title:"Best Long-Term Value",
-        to:"Lincoln Railsplitters",
-        target:{name:"Alex Sarr",dyn:65,age:21,pos:"C",
-          blk:1.8,reb:7.4,gp:62,
-          note:"21yo elite shot-blocker with developing 3pt shooting. Highest ceiling of any target — upside is legitimately elite. 6 years younger than Claxton with a higher dynasty ceiling."},
-        sends:[
-          {type:"player",name:"Nic Claxton",      val:58,age:27,note:"Like-for-like C swap — Lincoln have Jokic+Nurkic+Sarr glut"},
-          {type:"pick",  name:"2028 Rd2 (HIC)",   val:16,note:"Hickory rebuilding pick — real value"},
-        ],
-        sent:74, got:65,
-        analysis:"WesternU overpays modestly (74 vs 65) but gets a 21yo vs 27yo — 6 years younger with significantly higher ceiling. Lincoln have a total C glut: Jokic, Sarr AND Nurkic all on roster. Claxton plus a solid Hickory pick makes this an easy deal for them. WesternU keeps Coby White, Harper and all their 2026/2027 picks.",
-      },
-      {
-        id:3, grade:"A", gradeColor:"#1e3a8a", gradeBg:"#dbeafe",
-        title:"Young & Ascending",
-        to:"No Limit Soldiers",
-        target:{name:"Onyeka Okongwu",dyn:58,age:25,pos:"C",
-          blk:1.4,reb:8.4,gp:68,
-          note:"25yo athletic ascending C. Still improving — dynasty value likely rising. 1.4 blk/g + 8.4 reb/g with good mobility. Excellent fit running the floor with Trae Young."},
-        sends:[
-          {type:"player",name:"Coby White",       val:52,age:26,note:"Young scorer who fits around Cam Thomas"},
-          {type:"pick",  name:"2027 Rd2 (FLT)",   val:8, note:"Flint 2nd rounder"},
-        ],
-        sent:60, got:58,
-        analysis:"Nearly dead even (60 sent, 58 received). No Limit are absurdly stacked at C — Gobert, Kessler AND Okongwu is extreme redundancy. They'd welcome a young guard scorer around Cam Thomas. Okongwu at 25 is ascending and still within WesternU's contention window. Keeps Claxton, Harper and the Hickory pick.",
-      },
-      {
-        id:4, grade:"A-", gradeColor:"#14532d", gradeBg:"#f0fdf4",
-        title:"Elite Rebounder",
-        to:"Monstars",
-        target:{name:"Donovan Clingan",dyn:62,age:22,pos:"C",
-          blk:1.7,reb:11.6,gp:78,
-          note:"22yo with elite reb (11.6/g) + blocks (1.7/g). Near-nightly double-double machine — perfect for this format's DD +3 bonus. Best format fit of any target."},
-        sends:[
-          {type:"player",name:"Coby White",       val:52,age:26,note:"Guard scoring Monstars can use next to LaMelo"},
-          {type:"pick",  name:"2028 Rd2 (HIC)",   val:16,note:"Hickory rebuilding pick"},
-        ],
-        sent:68, got:62,
-        analysis:"Slight WesternU overpay (68 vs 62) but Clingan at 22 is exceptional value in this format — his 11.6 reb/g at 1.25pts each plus 1.7 blk/g at 2pts each is a monster stat line every night. Monstars have Mobley AND Queen at C already and are stacked — they'd take a scorer plus pick for redundant depth. WesternU keeps Claxton and all picks except one.",
-      },
-      {
-        id:5, grade:"B+", gradeColor:"#713f12", gradeBg:"#fef9c3",
-        title:"Shot-Blocking Upside",
-        to:"No Limit Soldiers",
-        target:{name:"Walker Kessler",dyn:55,age:24,pos:"C",
-          blk:2.2,reb:8.2,gp:0,
-          note:"Elite shot-blocker (2.2 blk/g when healthy) on IR. At 24 with elite blocking instincts, he's a format gem if health holds. Highest block rate of any target."},
-        sends:[
-          {type:"player",name:"Nic Claxton",      val:58,age:27,note:"Proven healthy C — fills No Limit's IR gap"},
-          {type:"pick",  name:"2026 Rd2 #2.08",   val:11,note:"Near-term known-slot pick"},
-        ],
-        sent:69, got:55,
-        analysis:"WesternU overpays (69 vs 55) and takes on IR risk — but Kessler's 2.2 blk/g when healthy is the highest of any target, and at 24 his upside is real. No Limit get a proven healthy C to replace Kessler's roster spot plus a near-term pick. Only worth doing if WesternU's medical staff is confident in Kessler's recovery. Higher risk, higher ceiling than Trades 1-3.",
-      },
-    ];
-
-    function ValueBar({sent, got}){
-      var mx = Math.max(sent, got, 1);
-      var fair = Math.abs(sent-got) <= 5;
-      var westernUWins = got > sent;
-      return h("div",{style:{marginTop:8}},
-        h("div",{style:{display:"flex",gap:8,alignItems:"center",marginBottom:4}},
-          h("span",{style:{fontSize:10,color:"#6b7280",minWidth:68}},"WesternU sends"),
-          h("div",{style:{flex:1,background:"#e5e7eb",borderRadius:4,height:8,overflow:"hidden"}},
-            h("div",{style:{width:Math.round(sent/mx*100)+"%",
-              background:"#f59e0b",height:"100%",borderRadius:4}})),
-          h("span",{style:{fontSize:12,fontWeight:800,color:"#713f12",minWidth:22}},sent),
-          h("span",{style:{fontSize:10,color:"#9ca3af",minWidth:16,textAlign:"center"}},"vs"),
-          h("span",{style:{fontSize:12,fontWeight:800,color:"#15803d",minWidth:22}},got),
-          h("div",{style:{flex:1,background:"#e5e7eb",borderRadius:4,height:8,overflow:"hidden"}},
-            h("div",{style:{width:Math.round(got/mx*100)+"%",
-              background:"#2563eb",height:"100%",borderRadius:4}})),
-          h("span",{style:{fontSize:10,color:"#6b7280",minWidth:68,textAlign:"right"}},"WesternU gets")
-        ),
-        h("div",{style:{textAlign:"center",fontSize:11,fontWeight:700,
-          color: westernUWins?"#14532d": fair?"#ca8a04":"#b91c1c"}},
-          westernUWins ? "✓ WesternU wins this trade"
-            : fair     ? "≈ Roughly fair value"
-                       : "WesternU overpays by "+(sent-got))
-      );
-    }
-
-    return h("div",null,
-      // Header banner
-      h("div",{style:{background:"linear-gradient(135deg,#0c4a6e,#0891b2)",
-        borderRadius:12,padding:"1.25rem",marginBottom:"1.25rem",color:"#fff"}},
-        h("div",{style:{fontSize:18,fontWeight:800,marginBottom:4}},
-          "WesternU Dolphins — Center Trade Proposals"),
-        h("div",{style:{fontSize:12,opacity:0.85,marginBottom:12}},
-          "5 trades to acquire a Solid/Average (55-69) Center · Bench players and draft picks only · Dylan Harper excluded (too valuable)"),
-        h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}},
-          [["Available bench","Nic Claxton (58) · Coby White (52) · Reed Sheppard (45) · Christian Braun (40) · Norman Powell (38)"],
-           ["Available picks","2026 Rd2 #2.08 (val:11) · 2027 Rd2 Flint (val:8) · 2028 Rd2 Hickory (val:16) · 2028 Rd3 (val:4)"],
-          ].map(function(x){
-            return h("div",{key:x[0],style:{background:"rgba(255,255,255,0.1)",
-              borderRadius:8,padding:"7px 12px",fontSize:11}},
-              h("div",{style:{fontWeight:700,opacity:0.7,marginBottom:3}},x[0].toUpperCase()),
-              h("div",{style:{lineHeight:1.5}},x[1])
-            );
-          })
-        )
-      ),
-
-      // Ranked label
-      h("div",{style:{fontSize:12,color:"#6b7280",marginBottom:10,fontStyle:"italic"}},
-        "Ranked #1 (best deal) to #5 (least ideal) — click any card to expand"),
-
-      // Trade cards
-      h("div",{style:{display:"flex",flexDirection:"column",gap:10}},
-        TRADES.map(function(t){
-          var isExp = exp===t.id;
-          return h("div",{key:t.id,
-            style:{background:"#fff",borderRadius:12,
-              border:"1.5px solid "+(isExp?"#0891b2":"#e5e7eb"),
-              boxShadow:isExp?"0 4px 16px rgba(8,145,178,0.12)":"none",
-              overflow:"hidden"}},
-
-            // Always-visible header row
-            h("div",{onClick:function(){setExp(isExp?null:t.id);},
-              style:{padding:"12px 16px",cursor:"pointer",
-                background:isExp?"#f0f9ff":"#fff",
-                display:"flex",justifyContent:"space-between",
-                alignItems:"center",flexWrap:"wrap",gap:8}},
-
-              h("div",{style:{display:"flex",alignItems:"center",gap:10}},
-                // Rank circle
-                h("div",{style:{width:30,height:30,borderRadius:"50%",flexShrink:0,
-                  background:t.id===1?"#0891b2":"#e5e7eb",
-                  color:t.id===1?"#fff":"#6b7280",
-                  fontSize:13,fontWeight:800,
-                  display:"flex",alignItems:"center",justifyContent:"center"}},
-                  "#"+t.id),
-                h("div",null,
-                  h("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:2}},
-                    h("span",{style:{fontSize:14,fontWeight:800}},t.title),
-                    h("span",{style:{background:t.gradeBg,color:t.gradeColor,
-                      borderRadius:6,padding:"1px 7px",fontSize:11,fontWeight:800}},t.grade)
-                  ),
-                  h("div",{style:{fontSize:12,color:"#6b7280"}},
-                    "Get ",h("b",null,t.target.name),
-                    " ("+t.target.pos+", age "+t.target.age+", dyn:"+t.target.dyn+") from "+t.to)
-                )
-              ),
-
-              // Quick value summary + chevron
-              h("div",{style:{display:"flex",alignItems:"center",gap:10}},
-                h("div",{style:{textAlign:"right",fontSize:11}},
-                  h("div",{style:{color:"#9ca3af"}},"Sends "+t.sent+" · Gets "+t.got),
-                  h("div",{style:{fontWeight:700,
-                    color:t.got>=t.sent?"#14532d":Math.abs(t.sent-t.got)<=8?"#ca8a04":"#b91c1c"}},
-                    t.got>=t.sent ? "✓ WesternU wins"
-                    : Math.abs(t.sent-t.got)<=8 ? "≈ Roughly fair"
-                    : "Overpay by "+(t.sent-t.got))
-                ),
-                h("span",{style:{fontSize:12,color:"#9ca3af"}},isExp?"▲":"▼")
-              )
-            ),
-
-            // Expanded content
-            isExp&&h("div",{style:{padding:"0 16px 16px",borderTop:"1px solid #e0f2fe"}},
-              h("div",{style:{display:"flex",gap:12,flexWrap:"wrap",marginTop:12,marginBottom:12}},
-
-                // What WesternU sends
-                h("div",{style:{flex:"1 1 200px"}},
-                  h("div",{style:{fontSize:10,fontWeight:700,color:"#9ca3af",
-                    letterSpacing:0.5,marginBottom:6}},"WESTERNУ SENDS"),
-                  t.sends.map(function(s){
-                    return h("div",{key:s.name,style:{display:"flex",gap:6,
-                      padding:"6px 0",borderBottom:"1px solid #f3f4f6",alignItems:"flex-start"}},
-                      h("span",{style:{fontSize:9,fontWeight:700,borderRadius:3,
-                        padding:"2px 5px",flexShrink:0,marginTop:1,
-                        background:s.type==="pick"?"#dbeafe":"#fef9c3",
-                        color:s.type==="pick"?"#1e3a8a":"#713f12"}},
-                        s.type==="pick"?"PICK":"PLY"),
-                      h("div",null,
-                        h("div",{style:{fontSize:13,fontWeight:700}},s.name),
-                        h("div",{style:{fontSize:11,color:"#6b7280"}},
-                          s.type==="pick"
-                            ? "Pick value: "+s.val+" · "+s.note
-                            : "Dyn: "+s.val+" · Age: "+s.age+" · "+s.note)
-                      )
-                    );
-                  }),
-                  h("div",{style:{marginTop:6,fontSize:12,fontWeight:800,
-                    color:"#713f12"}},"Total: "+t.sent)
-                ),
-
-                // Arrow
-                h("div",{style:{display:"flex",alignItems:"center",
-                  paddingTop:16,fontSize:22,color:"#9ca3af",flexShrink:0}},"⇄"),
-
-                // What WesternU gets
-                h("div",{style:{flex:"1 1 200px"}},
-                  h("div",{style:{fontSize:10,fontWeight:700,color:"#9ca3af",
-                    letterSpacing:0.5,marginBottom:6}},"WESTERNУ GETS"),
-                  h("div",{style:{background:"#f0fdf4",border:"1.5px solid #86efac",
-                    borderRadius:10,padding:"10px 12px"}},
-                    h("div",{style:{display:"flex",justifyContent:"space-between",
-                      alignItems:"center",marginBottom:4}},
-                      h("span",{style:{fontSize:14,fontWeight:800}},t.target.name),
-                      h("div",{style:{display:"flex",gap:4}},
-                        pill("#f3f4f6","#374151",t.target.pos),
-                        pill(DS(t.target.dyn).bg,DS(t.target.dyn).fg,t.target.dyn,12)
-                      )
-                    ),
-                    h("div",{style:{fontSize:11,color:"#6b7280",marginBottom:6}},
-                      "Age "+t.target.age+" · "+t.to),
-                    h("div",{style:{display:"flex",gap:5,flexWrap:"wrap",marginBottom:6}},
-                      [["BLK/g",t.target.blk,"#1d4ed8"],
-                       ["REB/g",t.target.reb,"#15803d"],
-                       ["GP",t.target.gp||"IR","#374151"],
-                      ].map(function(x){
-                        return h("div",{key:x[0],style:{background:"#fff",borderRadius:5,
-                          padding:"3px 7px",textAlign:"center",border:"1px solid #dcfce7"}},
-                          h("div",{style:{fontSize:9,color:"#9ca3af"}},x[0]),
-                          h("div",{style:{fontSize:12,fontWeight:800,color:x[2]}},x[1])
-                        );
-                      })
-                    ),
-                    h("div",{style:{fontSize:12,color:"#374151",lineHeight:1.5}},t.target.note)
-                  ),
-                  h("div",{style:{marginTop:6,fontSize:12,fontWeight:800,color:"#15803d"}},
-                    "Total: "+t.got)
-                )
-              ),
-
-              // Value bar
-              h(ValueBar,{sent:t.sent,got:t.got}),
-
-              // Analysis
-              h("div",{style:{background:"#f9fafb",borderRadius:8,padding:"10px 14px",
-                marginTop:10,fontSize:13,color:"#374151",lineHeight:1.6}},
-                t.analysis)
-            )
-          );
-        })
-      ),
-
-      // Footer note
-      h("div",{style:{marginTop:14,background:"#f0f9ff",borderRadius:8,
-        padding:"10px 14px",fontSize:12,color:"#0c4a6e",lineHeight:1.6}},
-        h("span",{style:{fontWeight:700}},"Notes: "),
-        "Dylan Harper (taxi, dyn:62) deliberately excluded — too valuable to move for a replacement C. ",
-        "Nic Claxton (bench, dyn:58) included as a tradeable asset since the goal is upgrading the C position. ",
-        "Trade #1 (Hartenstein) is the clear best deal — WesternU comes out ahead on raw value while keeping all top assets."
-      )
-    );
-  }
-
   // ── TRADE TAB ─────────────────────────────────────────────────────────────
   function TradeTab(){
-    const [tradeA,setTradeA]=useState("Liberty City Penetrators");
-    const [tradeB,setTradeB]=useState("Flint Tropics");
-    const [sideA,setSideA]=useState([]);
-    const [sideB,setSideB]=useState([]);
-    const pA=activeRosters.filter(function(p){return p.team===tradeA&&p.slot!=="ir";}).sort(function(a,b){return b.dyn-a.dyn;});
-    const pB=activeRosters.filter(function(p){return p.team===tradeB&&p.slot!=="ir";}).sort(function(a,b){return b.dyn-a.dyn;});
-    const selA=activeRosters.filter(function(p){return sideA.includes(p.id+p.team);});
-    const selB=activeRosters.filter(function(p){return sideB.includes(p.id+p.team);});
-    const vA=selA.reduce(function(s,p){return s+p.dyn;},0);
-    const vB=selB.reduce(function(s,p){return s+p.dyn;},0);
-    const diff=vA-vB;
-    function tog(id,arr,set){set(arr.includes(id)?arr.filter(function(x){return x!==id;}):[...arr,id]);}
-    function verdict(){
-      if(!selA.length||!selB.length)return null;
-      const gap=Math.abs(diff),loser=diff>0?tradeA:tradeB;
-      if(gap<=5)return{t:"Fair trade — both sides get solid value.",c:"#16a34a"};
-      if(gap>30)return{t:loser+" is getting robbed. Massive overpay.",c:"#b91c1c"};
-      if(gap>15)return{t:loser+" is overpaying. Needs more in return.",c:"#ea580c"};
-      return{t:"Slight edge to "+(diff>0?tradeB:tradeA)+". Passable trade.",c:"#ca8a04"};
+    const [searchA, setSearchA] = useState("");
+    const [searchB, setSearchB] = useState("");
+    const [sideA,   setSideA]   = useState([]);  // [{id, name, team, dyn, age, pos, isPick, pickVal}]
+    const [sideB,   setSideB]   = useState([]);
+    const [teamA,   setTeamA]   = useState("All");
+    const [teamB,   setTeamB]   = useState("All");
+
+    // Build full player pool: rostered players + picks as tradeable assets
+    const allPlayers = useMemo(function(){
+      var pool = activeRosters
+        .filter(function(p){ return !p.isDraft && p.slot !== "ir"; })
+        .map(function(p){
+          var fp = getFPLive(p.name);
+          return {
+            id: p.id+p.team, name: p.name, team: p.team,
+            pos: p.pos||"?", age: p.age||0,
+            dyn: p[dk]||0, fp: fp||null,
+            slot: p.slot, isPick: false,
+          };
+        });
+
+      // Add draft picks as tradeable assets from DRAFT_PICKS / livePickData
+      Object.keys(TEAMS_META).forEach(function(teamName){
+        var d = getPickData(teamName, livePickData);
+        (d.picks||[]).forEach(function(pk, i){
+          pool.push({
+            id: "pick_"+teamName+"_"+i,
+            name: pk.label,
+            team: teamName,
+            pos: "PICK", age: null,
+            dyn: pk.val, fp: null,
+            slot: "pick", isPick: true,
+            pickVal: pk.val,
+          });
+        });
+      });
+
+      return pool;
+    }, [activeRosters, dk, livePickData]);
+
+    // Filter helpers
+    function filterPool(search, teamFilter, excludeIds){
+      var q = search.toLowerCase();
+      return allPlayers.filter(function(p){
+        if(excludeIds.indexOf(p.id) >= 0) return false;
+        var teamOk = teamFilter === "All" || p.team === teamFilter;
+        var searchOk = !q ||
+          p.name.toLowerCase().includes(q) ||
+          p.team.toLowerCase().includes(q) ||
+          (p.pos||"").toLowerCase().includes(q);
+        return teamOk && searchOk;
+      }).sort(function(a,b){ return b.dyn - a.dyn; });
     }
-    function PRow(p,arr,set){
-      const sel=arr.includes(p.id+p.team);
-      const ds=DS(p.dyn),fp=getFPLive(p.name);
-      return h("div",{key:p.id+p.team,onClick:function(){tog(p.id+p.team,arr,set);},
-        style:{display:"flex",alignItems:"center",gap:6,padding:"6px 8px",borderRadius:8,marginBottom:3,cursor:"pointer",background:sel?"#eff6ff":"#f9fafb",border:"1.5px solid "+(sel?"#3b82f6":"#e5e7eb")}},
-        h("div",{style:{width:16,height:16,borderRadius:3,border:"2px solid "+(sel?"#3b82f6":"#d1d5db"),background:sel?"#3b82f6":"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:10,color:"#fff"}},sel?"✓":""),
-        h("span",{style:{fontSize:12,fontWeight:600,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.name),
-        fp&&h("span",{style:{fontSize:10,color:"#9ca3af",flexShrink:0}},fp+"fp"),
-        pill(ds.bg,ds.fg,p.dyn,11),
-        h("span",{onClick:function(e){e.stopPropagation();setModal(p);},style:{fontSize:13,cursor:"pointer",color:"#9ca3af",flexShrink:0,padding:"0 2px"}},"ℹ")
+
+    var excludeA = sideA.map(function(p){return p.id;});
+    var excludeB = sideB.map(function(p){return p.id;});
+    var poolA = filterPool(searchA, teamA, excludeA.concat(excludeB));
+    var poolB = filterPool(searchB, teamB, excludeA.concat(excludeB));
+
+    var totalA = sideA.reduce(function(s,p){return s+p.dyn;},0);
+    var totalB = sideB.reduce(function(s,p){return s+p.dyn;},0);
+    var diff   = totalA - totalB;
+    var winner = diff > 5 ? "Team B wins" : diff < -5 ? "Team A wins" : "Fair trade";
+    var winColor = diff > 5 ? "#15803d" : diff < -5 ? "#b91c1c" : "#ca8a04";
+    var winBg    = diff > 5 ? "#dcfce7"  : diff < -5 ? "#fee2e2"  : "#fef9c3";
+
+    function addTo(side, setSide, player){
+      setSide(function(prev){ return prev.concat([player]); });
+    }
+    function removeFrom(setSide, id){
+      setSide(function(prev){ return prev.filter(function(p){return p.id!==id;}); });
+    }
+
+    // Player search row — shown in the pool list
+    function PoolRow(p, side, setSide){
+      var ds = DS(p.dyn);
+      return h("div",{key:p.id,
+        onClick:function(){ addTo(side, setSide, p); },
+        style:{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",
+          cursor:"pointer",borderBottom:"1px solid #f3f4f6",
+          transition:"background .1s"},
+        onMouseOver:function(e){e.currentTarget.style.background="#f0f9ff";},
+        onMouseOut: function(e){e.currentTarget.style.background="transparent";}},
+        // Dynasty value pill
+        h("div",{style:{minWidth:36,textAlign:"center",padding:"2px 6px",borderRadius:6,
+          background:ds.bg,color:ds.fg,fontSize:12,fontWeight:800,flexShrink:0}},p.dyn),
+        h("div",{style:{flex:1,minWidth:0}},
+          h("div",{style:{fontSize:13,fontWeight:p.isPick?600:700,
+            color:p.isPick?"#7e22ce":"#111",
+            overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.name),
+          !p.isPick&&h("div",{style:{fontSize:11,color:"#9ca3af"}},
+            p.pos+" · Age "+(p.age||"?")+(p.fp?" · "+p.fp+" FP/G":""))
+        ),
+        h("span",{style:{fontSize:18,color:"#9ca3af",flexShrink:0}},"+")
       );
     }
-    const v=verdict();
-    return h("div",null,
-      h("div",{style:{display:"flex",gap:10,flexWrap:"wrap",marginBottom:"1rem"}},
-        ["A","B"].map(function(side){
-          const val=side==="A"?tradeA:tradeB;
-          const other=side==="A"?tradeB:tradeA;
-          const set=side==="A"?function(v){setTradeA(v);setSideA([]);}:function(v){setTradeB(v);setSideB([]);};
-          return h("div",{key:side,style:{flex:1,minWidth:0}},
-            h("label",{style:{fontSize:11,fontWeight:700,color:"#6b7280",display:"block",marginBottom:4}},"TEAM "+side),
-            h("select",{value:val,onChange:function(e){set(e.target.value);},style:{width:"100%",padding:"7px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13}},
-              TEAM_NAMES.filter(function(t){return t!==other;}).map(function(t){return h("option",{key:t},t);}))
-          );
-        })
-      ),
-      h("div",{style:{display:"flex",gap:10,flexWrap:"wrap"}},
-        h("div",{style:{flex:1,minWidth:200}},
-          h("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",marginBottom:6}},tradeA+" SENDS"),
-          h("div",{style:{maxHeight:280,overflowY:"auto"}},pA.map(function(p){return PRow(p,sideA,setSideA);}))
+
+    // Selected player chip — shown in the trade side
+    function SelectedChip(p, setSide){
+      var ds = DS(p.dyn);
+      return h("div",{key:p.id,
+        style:{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",
+          background:"#f9fafb",borderRadius:8,marginBottom:4,
+          border:"1.5px solid #e5e7eb"}},
+        h("div",{style:{minWidth:38,textAlign:"center",padding:"3px 6px",borderRadius:6,
+          background:ds.bg,color:ds.fg,fontSize:13,fontWeight:800,flexShrink:0}},p.dyn),
+        h("div",{style:{flex:1,minWidth:0}},
+          h("div",{style:{fontSize:13,fontWeight:700,
+            overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.name),
+          !p.isPick&&h("div",{style:{fontSize:11,color:"#9ca3af"}},
+            p.pos+" · Age "+(p.age||"?")+(p.fp?" · "+p.fp+" FP/G":""))
         ),
-        h("div",{style:{flex:1,minWidth:200}},
-          h("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",marginBottom:6}},tradeB+" SENDS"),
-          h("div",{style:{maxHeight:280,overflowY:"auto"}},pB.map(function(p){return PRow(p,sideB,setSideB);}))
+        h("button",{onClick:function(){removeFrom(setSide,p.id);},
+          style:{background:"none",border:"none",fontSize:18,cursor:"pointer",
+            color:"#dc2626",flexShrink:0,lineHeight:1,padding:"0 2px"}},
+          "×")
+      );
+    }
+
+    // One side panel (search + selected + pool)
+    function SidePanel(label, search, setSearch, teamFilter, setTeamFilter, side, setSide, pool){
+      return h("div",{style:{flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:0}},
+
+        // Header
+        h("div",{style:{fontSize:13,fontWeight:800,color:"#374151",
+          marginBottom:8,padding:"0 2px"}},label),
+
+        // Team filter
+        h("select",{value:teamFilter,
+          onChange:function(e){setTeamFilter(e.target.value);},
+          style:{width:"100%",padding:"7px 10px",borderRadius:8,
+            border:"1px solid #e5e7eb",fontSize:13,marginBottom:6,
+            background:"#f9fafb"}},
+          ["All"].concat(TEAM_NAMES).map(function(t){
+            return h("option",{key:t},t);
+          })
+        ),
+
+        // Search box
+        h("div",{style:{position:"relative",marginBottom:8}},
+          h("input",{
+            value:search,
+            onChange:function(e){setSearch(e.target.value);},
+            placeholder:"Search players or picks...",
+            style:{width:"100%",padding:"8px 10px 8px 32px",borderRadius:8,
+              border:"1.5px solid #e5e7eb",fontSize:13,outline:"none",
+              boxSizing:"border-box"}
+          }),
+          h("span",{style:{position:"absolute",left:10,top:"50%",
+            transform:"translateY(-50%)",color:"#9ca3af",fontSize:14}},"🔍")
+        ),
+
+        // Selected players
+        side.length > 0 && h("div",{style:{
+          background:"#fff",border:"1.5px solid #2563eb",
+          borderRadius:10,padding:"10px",marginBottom:8}},
+          h("div",{style:{fontSize:10,fontWeight:700,color:"#2563eb",
+            letterSpacing:0.5,marginBottom:6}},"SELECTED"),
+          side.map(function(p){ return SelectedChip(p, setSide); }),
+          h("div",{style:{display:"flex",justifyContent:"space-between",
+            alignItems:"center",borderTop:"1px solid #e5e7eb",paddingTop:6,marginTop:4}},
+            h("span",{style:{fontSize:11,color:"#6b7280"}},side.length+" player"+(side.length!==1?"s":"")+" selected"),
+            h("button",{onClick:function(){setSide([]);},
+              style:{fontSize:11,color:"#b91c1c",background:"none",border:"none",
+                cursor:"pointer",fontWeight:600}},"Clear all")
+          )
+        ),
+
+        // Player pool
+        h("div",{style:{border:"1px solid #e5e7eb",borderRadius:10,overflow:"hidden"}},
+          h("div",{style:{background:"#f9fafb",padding:"6px 10px",
+            fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:0.5,
+            borderBottom:"1px solid #e5e7eb",display:"flex",justifyContent:"space-between"}},
+            h("span",null,"AVAILABLE PLAYERS"),
+            h("span",null,pool.length+" results")
+          ),
+          h("div",{style:{maxHeight:360,overflowY:"auto"}},
+            pool.length === 0
+              ? h("div",{style:{padding:"1.5rem",textAlign:"center",
+                  color:"#9ca3af",fontSize:13,fontStyle:"italic"}},"No players found")
+              : pool.slice(0,50).map(function(p){
+                  return PoolRow(p, side, setSide);
+                }),
+            pool.length > 50 && h("div",{style:{padding:"8px 10px",
+              fontSize:11,color:"#9ca3af",textAlign:"center",
+              borderTop:"1px solid #f3f4f6"}},
+              "Showing top 50 — refine your search")
+          )
         )
+      );
+    }
+
+    return h("div",null,
+
+      // Title
+      h("div",{style:{marginBottom:14}},
+        h("div",{style:{fontSize:16,fontWeight:800,marginBottom:2}},
+          "Dynasty Trade Calculator"),
+        h("div",{style:{fontSize:12,color:"#6b7280"}},
+          "Search and add players or picks to each side · Dynasty values update with your league scoring")
       ),
-      (selA.length>0||selB.length>0)&&h("div",{style:{marginTop:14,background:"#f9fafb",borderRadius:12,padding:"1rem"}},
-        h("div",{style:{fontSize:12,fontWeight:700,color:"#6b7280",marginBottom:10}},"TRADE SUMMARY"),
-        h("div",{style:{display:"flex",gap:12,flexWrap:"wrap",marginBottom:12}},
-          [{label:tradeA,ps:selA,v:vA},{label:tradeB,ps:selB,v:vB}].map(function(side){
-            return h("div",{key:side.label,style:{flex:1,minWidth:130}},
-              h("div",{style:{fontSize:11,color:"#9ca3af",marginBottom:4}},side.label+" receives:"),
-              side.ps.length===0?h("div",{style:{fontSize:12,color:"#d1d5db",fontStyle:"italic"}},"Nothing selected"):
-              side.ps.map(function(p){
-                return h("div",{key:p.id,style:{display:"flex",justifyContent:"space-between",fontSize:12,padding:"2px 0"}},
-                  h("span",{style:{fontWeight:600}},p.name),pill(DS(p.dyn).bg,DS(p.dyn).fg,p.dyn,11)
-                );
-              }),
-              h("div",{style:{borderTop:"1px solid #e5e7eb",marginTop:6,paddingTop:6,display:"flex",justifyContent:"space-between",fontSize:13,fontWeight:800}},
-                h("span",null,"Total value"),h("span",null,side.v)
-              )
+
+      // Two side panels side by side
+      h("div",{style:{display:"flex",gap:12,flexWrap:"wrap",marginBottom:12}},
+        SidePanel("TEAM A RECEIVES",
+          searchA,setSearchA,teamA,setTeamA,sideA,setSideA,poolA),
+        SidePanel("TEAM B RECEIVES",
+          searchB,setSearchB,teamB,setTeamB,sideB,setSideB,poolB)
+      ),
+
+      // Trade evaluation bar
+      (sideA.length > 0 || sideB.length > 0) && h("div",{
+        style:{background:winBg,border:"1.5px solid "+winColor,
+          borderRadius:12,padding:"1rem",marginBottom:12}},
+
+        // Value comparison bars
+        h("div",{style:{display:"flex",gap:12,alignItems:"center",marginBottom:10,flexWrap:"wrap"}},
+          h("div",{style:{flex:1,minWidth:120}},
+            h("div",{style:{display:"flex",justifyContent:"space-between",
+              fontSize:11,color:"#6b7280",marginBottom:3}},
+              h("span",null,"Team A sends"),
+              h("span",{style:{fontWeight:700,color:"#111"}},totalA)
+            ),
+            h("div",{style:{background:"#e5e7eb",borderRadius:4,height:10,overflow:"hidden"}},
+              h("div",{style:{
+                width:Math.round(totalA/Math.max(totalA,totalB,1)*100)+"%",
+                background:"#f59e0b",height:"100%",borderRadius:4,
+                transition:"width .3s"
+              }})
+            )
+          ),
+          h("div",{style:{fontSize:22,color:"#9ca3af",flexShrink:0}},"⇄"),
+          h("div",{style:{flex:1,minWidth:120}},
+            h("div",{style:{display:"flex",justifyContent:"space-between",
+              fontSize:11,color:"#6b7280",marginBottom:3}},
+              h("span",null,"Team B sends"),
+              h("span",{style:{fontWeight:700,color:"#111"}},totalB)
+            ),
+            h("div",{style:{background:"#e5e7eb",borderRadius:4,height:10,overflow:"hidden"}},
+              h("div",{style:{
+                width:Math.round(totalB/Math.max(totalA,totalB,1)*100)+"%",
+                background:"#2563eb",height:"100%",borderRadius:4,
+                transition:"width .3s"
+              }})
+            )
+          )
+        ),
+
+        // Verdict
+        h("div",{style:{textAlign:"center"}},
+          h("div",{style:{fontSize:18,fontWeight:800,color:winColor,marginBottom:4}},
+            winner),
+          sideA.length>0&&sideB.length>0&&h("div",{style:{fontSize:13,color:"#374151"}},
+            Math.abs(diff)<=5
+              ? "Values are within 5 points — this is a fair trade for both sides."
+              : (diff>0?"Team B is getting the better deal. Team A is overpaying by "+diff+" points.":
+                        "Team A is getting the better deal. Team B is overpaying by "+Math.abs(diff)+" points.")
+          )
+        ),
+
+        // Age analysis when both sides have real players
+        sideA.length>0&&sideB.length>0&&h("div",{style:{
+          marginTop:10,paddingTop:10,borderTop:"1px solid "+winColor+"40",
+          display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap",
+          fontSize:12,color:"#6b7280"}},
+          [["Team A avg age",
+            sideA.filter(function(p){return !p.isPick&&p.age;}).length>0
+              ? (sideA.filter(function(p){return !p.isPick&&p.age;})
+                  .reduce(function(s,p){return s+(p.age||0);},0)/
+                 sideA.filter(function(p){return !p.isPick&&p.age;}).length).toFixed(1)
+              : "—"],
+           ["Team B avg age",
+            sideB.filter(function(p){return !p.isPick&&p.age;}).length>0
+              ? (sideB.filter(function(p){return !p.isPick&&p.age;})
+                  .reduce(function(s,p){return s+(p.age||0);},0)/
+                 sideB.filter(function(p){return !p.isPick&&p.age;}).length).toFixed(1)
+              : "—"],
+           ["Value diff",Math.abs(diff)+" pts "+(diff>0?"favor B":"favor A")],
+          ].map(function(x){
+            return h("div",{key:x[0],style:{textAlign:"center"}},
+              h("div",{style:{fontSize:10,color:"#9ca3af",marginBottom:1}},x[0]),
+              h("div",{style:{fontSize:13,fontWeight:700,color:"#374151"}},x[1])
             );
           })
         ),
-        selA.length>0&&selB.length>0&&h("div",null,
-          [{lbl:tradeA.split(" ")[0],v:vA,win:diff>=0},{lbl:tradeB.split(" ")[0],v:vB,win:diff<=0}].map(function(s){
-            return h("div",{key:s.lbl,style:{display:"flex",alignItems:"center",gap:8,marginBottom:6}},
-              h("div",{style:{fontSize:12,color:"#6b7280",minWidth:60}},s.lbl),
-              bar(s.v,Math.max(vA,vB,1),s.win?"#2563eb":"#d1d5db",10),
-              h("span",{style:{fontSize:12,fontWeight:700,minWidth:26}},s.v)
-            );
-          }),
-          v&&h("div",{style:{background:Math.abs(diff)<=5?"#f0fdf4":"#fef9c3",borderRadius:8,padding:"10px 14px",fontSize:13,fontWeight:600,color:v.c,marginTop:8}},v.t)
+
+        // Reset button
+        h("div",{style:{textAlign:"center",marginTop:10}},
+          h("button",{
+            onClick:function(){ setSideA([]); setSideB([]); setSearchA(""); setSearchB(""); },
+            style:{padding:"6px 18px",borderRadius:8,border:"1px solid "+winColor,
+              background:"#fff",fontSize:12,cursor:"pointer",
+              color:winColor,fontWeight:600}
+          },"Reset trade")
         )
       )
     );
   }
-
 
 
 
@@ -4193,11 +4167,22 @@ function App(){
   function PlayoffTab(){
     // ── LIVE W/L STATE (updates via Refresh or manual entry) ─────────────────
     const [wlRecords, setWlRecords] = useState(function(){
-      // Default 0-0 for all teams
       var rec = {};
       Object.keys(TEAMS_META).forEach(function(t){ rec[t]={w:0,l:0}; });
       return rec;
     });
+    const [standingsSource, setStandingsSource] = useState("manual"); // "manual" | "sleeper"
+
+    // Auto-apply live standings from Sleeper when available
+    useEffect(function(){
+      if(liveStandings && Object.keys(liveStandings).length > 0){
+        var hasRealData = Object.values(liveStandings).some(function(s){return s.w>0||s.l>0;});
+        if(hasRealData){
+          setWlRecords(liveStandings);
+          setStandingsSource("sleeper");
+        }
+      }
+    },[liveStandings]);
     const [editingWL, setEditingWL] = useState(false);
     const [wlDraft, setWlDraft] = useState(null);
 
@@ -4498,11 +4483,22 @@ function App(){
               h("div",{style:{fontSize:10,opacity:0.8,marginBottom:2}},"FORMAT"),
               h("div",{style:{fontSize:14,fontWeight:800}},"20 Games")
             ),
+            h("div",{style:{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}},
+            liveStandings && Object.values(liveStandings).some(function(s){return s.w>0||s.l>0;})
+              ? h("div",{style:{background:"rgba(134,239,172,0.2)",border:"1px solid #86efac",
+                  borderRadius:8,padding:"6px 12px",fontSize:12,color:"#86efac",fontWeight:700}},
+                  "✓ Live from Sleeper · "+
+                  Object.values(liveStandings).reduce(function(t,s){return t+(s.w||0)+(s.l||0);},0)+
+                  " games played")
+              : h("div",{style:{background:"rgba(255,255,255,0.1)",borderRadius:8,
+                  padding:"6px 12px",fontSize:11,color:"rgba(255,255,255,0.6)"}},
+                  "Standings load automatically on Refresh Rosters"),
             h("button",{onClick:openWLEdit,
               style:{padding:"8px 16px",borderRadius:8,border:"1.5px solid rgba(255,255,255,0.4)",
                 background:"rgba(255,255,255,0.15)",color:"#fff",fontSize:13,
                 cursor:"pointer",fontWeight:600}},
               "✏ Update W/L Records")
+          )
           )
         )
       ),
@@ -4750,6 +4746,83 @@ function App(){
         )
       ),
 
+      // ── LIVE STANDINGS TABLE ──────────────────────────────────────────────
+      liveStandings && Object.values(liveStandings).some(function(s){return s.w>0||s.l>0;}) &&
+      h("div",{style:{marginTop:16,background:"#fff",border:"1px solid #e5e7eb",
+        borderRadius:12,padding:"1rem",marginBottom:"1rem"}},
+        h("div",{style:{fontSize:13,fontWeight:700,marginBottom:10,display:"flex",
+          alignItems:"center",gap:8}},
+          h("span",{style:{background:"#15803d",color:"#fff",borderRadius:6,
+            padding:"2px 8px",fontSize:11}},"LIVE"),
+          "Sleeper Standings — ",
+          h("span",{style:{color:"#6b7280",fontWeight:400}},
+            "Synced from Sleeper · updates on Refresh Rosters")
+        ),
+        h("div",{style:{overflowX:"auto"}},
+          h("table",{style:{width:"100%",borderCollapse:"collapse",fontSize:13}},
+            h("thead",null,
+              h("tr",{style:{background:"#f9fafb"}},
+                ["Rank","Team","W","L","T","PF","PA","Win %"].map(function(c){
+                  return h("th",{key:c,style:{fontSize:11,color:"#6b7280",fontWeight:600,
+                    padding:"6px 10px",textAlign:"left",
+                    borderBottom:"1px solid #e5e7eb",whiteSpace:"nowrap"}},c);
+                })
+              )
+            ),
+            h("tbody",null,
+              Object.entries(liveStandings)
+                .sort(function(a,b){
+                  var wa=a[1].w||0,wb=b[1].w||0;
+                  var ga=wa+(a[1].l||0),gb=wb+(b[1].l||0);
+                  var pctA=ga>0?wa/ga:0,pctB=gb>0?wb/gb:0;
+                  if(pctB!==pctA) return pctB-pctA;
+                  return (b[1].pf||0)-(a[1].pf||0);
+                })
+                .map(function(entry,i){
+                  var name=entry[0],s=entry[1];
+                  var gp=(s.w||0)+(s.l||0)+(s.t||0);
+                  var pct=gp>0?Math.round((s.w||0)/gp*1000)/10:0;
+                  var inPlayoffs=i<6;
+                  return h("tr",{key:name,
+                    style:{borderLeft:"3px solid "+(inPlayoffs?"#16a34a":"#dc2626"),
+                      background:i%2===0?"#fff":"#fafafa"},
+                    onMouseOver:function(e){e.currentTarget.style.background="#f0fdf4";},
+                    onMouseOut:function(e){e.currentTarget.style.background=i%2===0?"#fff":"#fafafa";}},
+                    h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",
+                      fontWeight:700,color:inPlayoffs?"#15803d":"#9ca3af"}},i+1),
+                    h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",
+                      fontWeight:700}},
+                      name,
+                      h("span",{style:{marginLeft:6,fontSize:9,fontWeight:700,
+                        background:inPlayoffs?"#dcfce7":"#fee2e2",
+                        color:inPlayoffs?"#14532d":"#991b1b",
+                        borderRadius:4,padding:"1px 5px"}},
+                        inPlayoffs?"IN":"OUT")
+                    ),
+                    h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",
+                      fontWeight:800,color:"#15803d",fontSize:15}},s.w||0),
+                    h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",
+                      fontWeight:800,color:"#b91c1c",fontSize:15}},s.l||0),
+                    h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",
+                      color:"#9ca3af"}},s.t||0),
+                    h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",
+                      color:"#1d4ed8",fontWeight:600}},s.pf||0),
+                    h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",
+                      color:"#6b7280"}},s.pa||0),
+                    h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",
+                      fontWeight:700,color:pct>=50?"#15803d":"#b91c1c"}},
+                      gp>0?pct+"%":"—")
+                  );
+                })
+            )
+          )
+        ),
+        h("div",{style:{fontSize:11,color:"#9ca3af",marginTop:6}},
+          "Top 6 teams make playoffs · "+
+          Object.values(liveStandings).reduce(function(t,s){return t+(s.w||0)+(s.l||0);},0)+
+          " total matchups played this season")
+      ),
+
       // ── METHODOLOGY NOTE ──────────────────────────────────────────────────
       h("div",{style:{marginTop:16,background:"#f9fafb",borderRadius:8,
         padding:"10px 14px",fontSize:12,color:"#6b7280",lineHeight:1.6}},
@@ -4766,7 +4839,7 @@ function App(){
 
 
   // ── MAIN RENDER ─────────────────────────────────────────────────────────────
-  const tabs=[["teams","Team Rankings"],["players","Player Rankings"],["roster","Roster View"],["compare","Head-to-Head"],["trade","Trade Simulator"],["draft","Draft Strategy"],["playoffs","Playoff Predictor"],["mockdraft","Mock Draft"],["proposals","🔄 WesternU C Trades"]];
+  const tabs=[["teams","Team Rankings"],["players","Player Rankings"],["roster","Roster View"],["compare","Head-to-Head"],["trade","Trade Simulator"],["draft","Draft Strategy"],["playoffs","Playoff Predictor"],["mockdraft","Mock Draft"]];
 
   return h("div",{style:{fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",maxWidth:1020,margin:"0 auto",padding:"1rem 0.75rem",fontSize:14,color:"#111"}},
     // Modals
@@ -4865,8 +4938,7 @@ function App(){
     tab==="trade"&&h(TradeTab),
     tab==="draft"&&h(DraftTab),
     tab==="playoffs"&&h(PlayoffTab),
-    tab==="mockdraft"&&h(MockDraftTab),
-    tab==="proposals"&&h(TradeProposalsTab)
+    tab==="mockdraft"&&h(MockDraftTab)
   );
 }
 
