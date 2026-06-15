@@ -4879,6 +4879,7 @@ function App(){
                         h("td",{style:{padding:"8px 8px",borderBottom:isExpanded?"none":"1px solid #f3f4f6",
                           fontSize:11,color:"#6b7280",maxWidth:110,overflow:"hidden",
                           textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.comp||"—")
+                      ),
                     ];
                   })
             )
@@ -4891,7 +4892,18 @@ function App(){
       ),
 
       // ── TEAM DRAFT STRATEGIES ───────────────────────────────────────────────
-h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:12}},
+      h("div",{style:{marginBottom:10}},
+        h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,marginBottom:12}},
+          h("div",{style:{fontSize:14,fontWeight:700,display:"flex",alignItems:"center",gap:8}},
+            h("span",{style:{background:"#111",color:"#fff",borderRadius:6,padding:"2px 8px",fontSize:12}},"STRATEGY"),
+            "Team-by-Team Draft Targets"
+          ),
+          h("select",{value:selTeam,onChange:function(e){setSelTeam2(e.target.value);},
+            style:{padding:"6px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13}},
+            ["All"].concat(Object.keys(TEAMS_META)).map(function(t){return h("option",{key:t},t);})
+          )
+        ),
+        h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:12}},
           teamsToShow.map(function(teamName){
             var strat=DRAFT_STRATEGY[teamName];
             var meta=TEAMS_META[teamName]||{};
@@ -5860,8 +5872,7 @@ h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320p
         "5,000 Monte Carlo simulations of the 20-game schedule generate playoff odds and average seed. ",
         "Click '✏ Update W/L Records' to enter actual records — the model will blend real results with projected remaining games. ",
         "Refresh Rosters will also pull updated records if connected to Sleeper."
-      )
-    );
+      );
   }
 
 
