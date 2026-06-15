@@ -2271,14 +2271,114 @@ function App(){
   }
 
   function ScoreLegendBanner(){
-    return h("div",{style:{background:"#f9fafb",border:"1px solid #e5e7eb",borderRadius:8,padding:"8px 12px",marginBottom:"1rem",display:"flex",flexWrap:"wrap",gap:12,alignItems:"center"}},
-      h("span",{style:{fontSize:11,fontWeight:700,color:"#6b7280"}},"SCORE GUIDE"),
-      [["overall","Dynasty Score","Overall roster strength (0-100)"],["starterAvg","Starters","Avg dynasty value of 9 starters"],["rosterAvg","Roster","Avg across full active roster"],["taxiAvg","Taxi","Avg dynasty value of taxi squad"],["fpSum","FP/G","Fantasy pts/game with 2025-26 real stats"],["dynValue","Player Val","Individual player dynasty value (0-100)"]].map(function(x){
-        return h("span",{key:x[0],onClick:function(){setScoreTooltip({key:x[0],value:x[0]==="fpSum"?260:x[0]==="dynValue"?75:65});},
-          style:{fontSize:11,color:"#1d4ed8",cursor:"pointer",textDecoration:"underline",textDecorationStyle:"dotted"}},
-          x[1]+" ?"
-        );
-      })
+    // Color legend items: [bg, fg, label, range, meaning]
+    var colorLegend = [
+      ["#dcfce7","#14532d","Green","85-100","Elite / Top tier"],
+      ["#dbeafe","#1e3a8a","Blue","70-84","Strong asset"],
+      ["#fef9c3","#713f12","Yellow","55-69","Solid / Average"],
+      ["#f3f4f6","#6b7280","Gray","0-54","Depth / Rebuilding"],
+    ];
+    // Age color guide
+    var ageLegend = [
+      ["#dcfce7","#14532d","Green age","≤25","Young / Ascending"],
+      ["#374151","#374151","Normal","26-33","Prime years"],
+      ["#fee2e2","#b91c1c","Red age","34+","Aging / Decline"],
+    ];
+    return h("div",{style:{background:"#f9fafb",border:"1px solid #e5e7eb",
+      borderRadius:8,padding:"10px 14px",marginBottom:"1rem"}},
+      h("div",{style:{display:"flex",flexWrap:"wrap",gap:16,alignItems:"flex-start"}},
+
+        // Score guide (clickable)
+        h("div",null,
+          h("div",{style:{fontSize:10,fontWeight:700,color:"#9ca3af",
+            letterSpacing:0.5,marginBottom:5}},"SCORE GUIDE — click for details"),
+          h("div",{style:{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}},
+            [["overall","Dynasty Score"],["starterAvg","Starters"],
+             ["rosterAvg","Roster"],["taxiAvg","Taxi"],
+             ["fpSum","FP/G"],["dynValue","Player Val"]
+            ].map(function(x){
+              return h("span",{key:x[0],
+                onClick:function(){setScoreTooltip({key:x[0],
+                  value:x[0]==="fpSum"?260:x[0]==="dynValue"?75:65});},
+                style:{fontSize:11,color:"#1d4ed8",cursor:"pointer",
+                  textDecoration:"underline",textDecorationStyle:"dotted"}},
+                x[1]+" ?");
+            })
+          )
+        ),
+
+        // Divider
+        h("div",{style:{width:1,background:"#e5e7eb",alignSelf:"stretch"}}),
+
+        // Dynasty value color legend
+        h("div",null,
+          h("div",{style:{fontSize:10,fontWeight:700,color:"#9ca3af",
+            letterSpacing:0.5,marginBottom:5}},"DYNASTY VALUE COLOR KEY"),
+          h("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
+            colorLegend.map(function(c){
+              return h("div",{key:c[2],style:{display:"flex",alignItems:"center",gap:5}},
+                h("div",{style:{background:c[0],border:"1px solid "+c[1]+"40",
+                  borderRadius:4,padding:"2px 8px",minWidth:32,textAlign:"center"}},
+                  h("span",{style:{fontSize:11,fontWeight:800,color:c[1]}},c[2])
+                ),
+                h("div",{style:{fontSize:10,color:"#6b7280",lineHeight:1.3}},
+                  h("div",{style:{fontWeight:600,color:"#374151"}},c[3]),
+                  c[4]
+                )
+              );
+            })
+          )
+        ),
+
+        // Divider
+        h("div",{style:{width:1,background:"#e5e7eb",alignSelf:"stretch"}}),
+
+        // Age color legend
+        h("div",null,
+          h("div",{style:{fontSize:10,fontWeight:700,color:"#9ca3af",
+            letterSpacing:0.5,marginBottom:5}},"AGE COLOR KEY"),
+          h("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
+            ageLegend.map(function(c){
+              var isNormal = c[2]==="Normal";
+              return h("div",{key:c[2],style:{display:"flex",alignItems:"center",gap:5}},
+                h("div",{style:{
+                  background:isNormal?"#f3f4f6":c[0],
+                  border:"1px solid "+(isNormal?"#d1d5db":c[1]+"40"),
+                  borderRadius:4,padding:"2px 8px",textAlign:"center"}},
+                  h("span",{style:{fontSize:11,fontWeight:800,
+                    color:isNormal?"#374151":c[1]}},isNormal?"Black":c[2].split(" ")[0])
+                ),
+                h("div",{style:{fontSize:10,color:"#6b7280",lineHeight:1.3}},
+                  h("div",{style:{fontWeight:600,color:"#374151"}},c[3]),
+                  c[4]
+                )
+              );
+            })
+          )
+        ),
+
+        // Divider
+        h("div",{style:{width:1,background:"#e5e7eb",alignSelf:"stretch"}}),
+
+        // Slot badge legend
+        h("div",null,
+          h("div",{style:{fontSize:10,fontWeight:700,color:"#9ca3af",
+            letterSpacing:0.5,marginBottom:5}},"ROSTER SLOT"),
+          h("div",{style:{display:"flex",flexWrap:"wrap",gap:6}},
+            [["#f0fdf4","#15803d","Starter"],
+             ["#f9fafb","#6b7280","Bench"],
+             ["#eff6ff","#1d4ed8","Taxi"],
+             ["#fef2f2","#b91c1c","IR"]
+            ].map(function(c){
+              return h("div",{key:c[2],style:{display:"flex",alignItems:"center",gap:4}},
+                h("span",{style:{background:c[0],color:c[1],borderRadius:20,
+                  padding:"2px 8px",fontSize:11,fontWeight:700,
+                  border:"1px solid "+c[1]+"30"}},c[2])
+              );
+            })
+          )
+        )
+      )
     );
   }
 
