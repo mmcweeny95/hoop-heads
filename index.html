@@ -449,7 +449,7 @@ var DRAFT_STRATEGY = {
 var DRAFT_PICKS = {
   "East High Wildcats": {
     totalValue: 216,
-    summary: "Elite pick capital — own 1.01, have 3 future 1sts and 5 2nds. Best draft haul in the league outside No Limit.",
+    summary: "Elite pick capital — own 1.01 and 2.01, plus 3 future 1sts and 5 2nds. Best controlled draft haul alongside No Limit.",
     picks: [
       {year:2026,rd:1,slot:"1.01",orig:null,val:85,label:"2026 Rd1 #1.01"},
       {year:2026,rd:2,slot:"2.01",orig:null,val:28,label:"2026 Rd2 #2.01"},
@@ -466,7 +466,7 @@ var DRAFT_PICKS = {
   },
   "Richmond Oilers": {
     totalValue: 82,
-    summary: "Decent pick capital with 2 future 1sts. No 2026 1st is a gap but picks up from No Limit Soldiers and owns future rounds.",
+    summary: "Modest pick capital — no 2026 1st but owns 2 future 1sts. The 3.02 from No Limit and own 3.10 are the 2026 assets.",
     picks: [
       {year:2026,rd:3,slot:"3.02",orig:"No Limit Soldiers",val:12,label:"2026 Rd3 #3.02 (No Limit Soldiers)"},
       {year:2026,rd:3,slot:"3.10",orig:null,val:5,label:"2026 Rd3 #3.10"},
@@ -479,7 +479,7 @@ var DRAFT_PICKS = {
   },
   "LA Knights": {
     totalValue: 94,
-    summary: "Solid capital highlighted by Liberty City's 2026 1st (#1.08). Four future 2nds add real depth. No future 1sts of own is a concern.",
+    summary: "Highlighted by Liberty City's 1.08. No future 1sts of their own — must win now with Giannis/Bam before the window closes.",
     picks: [
       {year:2026,rd:1,slot:"1.08",orig:"Liberty City Penetrators",val:38,label:"2026 Rd1 #1.08 (Liberty City Penetrators)"},
       {year:2026,rd:2,slot:"2.05",orig:"Dimmsdale Ballhogs",val:16,label:"2026 Rd2 #2.05 (Dimmsdale Ballhogs)"},
@@ -491,7 +491,7 @@ var DRAFT_PICKS = {
   },
   "No Limit Soldiers": {
     totalValue: 424,
-    summary: "Generational pick haul — FIVE 2026 1sts including the #1.02, plus three more future 1sts. Unmatched in dynasty history. This rebuild is loaded.",
+    summary: "Generational pick haul — FIVE 2026 1sts (1.02 through 1.07), plus 3 future 1sts. The most dominant draft capital position in league history.",
     picks: [
       {year:2026,rd:1,slot:"1.02",orig:null,val:75,label:"2026 Rd1 #1.02 (own)"},
       {year:2026,rd:1,slot:"1.03",orig:"Mt. Vernon Smelters",val:68,label:"2026 Rd1 #1.03 (Mt. Vernon Smelters)"},
@@ -507,7 +507,7 @@ var DRAFT_PICKS = {
   },
   "WesternU Dolphins": {
     totalValue: 39,
-    summary: "Thin pick capital — traded away most picks. No 2026 or 2027 1sts. Went all-in and must win now with current core.",
+    summary: "Very thin pick capital — no 2026 or 2027 1sts. Traded heavily to build current core. Must win now with Trae/JJJ/Barnes/Jalen Johnson.",
     picks: [
       {year:2026,rd:2,slot:"2.08",orig:"Liberty City Penetrators",val:11,label:"2026 Rd2 #2.08 (Liberty City Penetrators)"},
       {year:2027,rd:2,slot:null,orig:"Flint Tropics",val:8,label:"2027 Rd2 (Flint Tropics)"},
@@ -534,7 +534,7 @@ var DRAFT_PICKS = {
   },
   "Flint Tropics": {
     totalValue: 67,
-    summary: "Pick-light team — no 2026 or 2027 1sts. Five 2028 2nds show they made big trades to win now. Must capitalize with current Luka core.",
+    summary: "Pick-light — no 2026 or 2027 1sts. Traded aggressively to win now with Luka. Must capitalize on the current window.",
     picks: [
       {year:2026,rd:2,slot:"2.07",orig:"Monstars",val:12,label:"2026 Rd2 #2.07 (Monstars)"},
       {year:2026,rd:3,slot:"3.06",orig:null,val:8,label:"2026 Rd3 #3.06"},
@@ -549,7 +549,7 @@ var DRAFT_PICKS = {
   },
   "Monstars": {
     totalValue: 52,
-    summary: "Lean on picks — traded heavily to build current elite young core. 2027 own 1st is key. Must rely on existing Banchero/Flagg/Mobley core.",
+    summary: "Lean on picks — traded away most capital to build the elite young core of Banchero/Flagg/Mobley/LaMelo. 2027 own 1st is key.",
     picks: [
       {year:2026,rd:2,slot:"2.02",orig:"No Limit Soldiers",val:24,label:"2026 Rd2 #2.02 (No Limit Soldiers)"},
       {year:2027,rd:1,slot:null,orig:null,val:20,label:"2027 Rd1 (own)"},
@@ -559,7 +559,7 @@ var DRAFT_PICKS = {
   },
   "Lincoln Railsplitters": {
     totalValue: 110,
-    summary: "Complete pick inventory — own every pick 2026-2028. No traded picks coming in or out. Clean asset sheet with 3 1sts across 3 years.",
+    summary: "Clean and complete — own every pick 2026-2028. No traded picks in or out. 3 1sts across 3 years, fully controlled.",
     picks: [
       {year:2026,rd:1,slot:"1.09",orig:null,val:32,label:"2026 Rd1 #1.09"},
       {year:2026,rd:2,slot:"2.09",orig:null,val:10,label:"2026 Rd2 #2.09"},
@@ -572,20 +572,60 @@ var DRAFT_PICKS = {
       {year:2028,rd:3,slot:null,orig:null,val:4,label:"2028 Rd3 (own)"},
     ]
   },
-  "Hickory Huskers": {
-    totalValue: 0,
-    summary: "NO PICKS — traded every single pick away. This is a catastrophic asset position for a rebuilding team. Must acquire picks urgently via trades.",
-    picks: []
+  "Mt. Vernon Smelters": {
+    totalValue: 156,
+    summary: "Strong rebuild assets — WesternU's 1.12 and LA's 2.11 headline. 4 future 1sts and 11 total picks. Much improved pick situation.",
+    picks: [
+      {year:2026,rd:1,slot:"1.12",orig:"WesternU Dolphins",val:14,label:"2026 Rd1 #1.12 (WesternU Dolphins)"},
+      {year:2026,rd:2,slot:"2.11",orig:"LA Knights",val:8,label:"2026 Rd2 #2.11 (LA Knights)"},
+      {year:2026,rd:3,slot:"3.03",orig:null,val:11,label:"2026 Rd3 #3.03"},
+      {year:2027,rd:1,slot:null,orig:null,val:29,label:"2027 Rd1 (own)"},
+      {year:2027,rd:2,slot:null,orig:"WesternU Dolphins",val:10,label:"2027 Rd2 (WesternU Dolphins)"},
+      {year:2027,rd:2,slot:null,orig:null,val:13,label:"2027 Rd2 (own)"},
+      {year:2027,rd:3,slot:null,orig:null,val:5,label:"2027 Rd3 (own)"},
+      {year:2028,rd:1,slot:null,orig:"LA Knights",val:24,label:"2028 Rd1 (LA Knights)"},
+      {year:2028,rd:1,slot:null,orig:null,val:26,label:"2028 Rd1 (own)"},
+      {year:2028,rd:2,slot:null,orig:null,val:11,label:"2028 Rd2 (own)"},
+      {year:2028,rd:3,slot:null,orig:null,val:5,label:"2028 Rd3 (own)"},
+    ]
   },
   "Liberty City Penetrators": {
-    totalValue: 0,
-    summary: "NO PICKS — traded all picks to acquire elite talent. Acceptable for the best roster in the league, but zero draft capital is a long-term risk.",
-    picks: []
+    totalValue: 13,
+    summary: "Almost no picks — traded nearly everything to build the best roster in the league. Own just 3 3rd-rounders across 3 years. Must win now.",
+    picks: [
+      {year:2026,rd:3,slot:"3.08",orig:null,val:6,label:"2026 Rd3 #3.08"},
+      {year:2027,rd:3,slot:null,orig:null,val:4,label:"2027 Rd3 (own)"},
+      {year:2028,rd:3,slot:null,orig:null,val:3,label:"2028 Rd3 (own)"},
+    ]
   },
-  "Mt. Vernon Smelters": {
-    totalValue: 0,
-    summary: "NO PICKS — traded all picks away. With an already thin roster lacking a franchise scorer, having no draft capital is a major concern.",
-    picks: []
+  "Hickory Huskers": {
+    totalValue: 394,
+    summary: "Massive pick haul — 23 total picks including TWELVE 1st rounders! THREE 2026 1sts, FIVE 2027 1sts, and FOUR 2028 1sts. One of the most dominant draft capital positions ever assembled. Full rebuild mode paying off.",
+    picks: [
+      {year:2026,rd:1,slot:"1.05",orig:"Dimmsdale Ballhogs",val:56,label:"2026 Rd1 #1.05 (Dimmsdale Ballhogs)"},
+      {year:2026,rd:1,slot:"1.10",orig:"Richmond Oilers",val:26,label:"2026 Rd1 #1.10 (Richmond Oilers)"},
+      {year:2026,rd:1,slot:"1.11",orig:"LA Knights",val:20,label:"2026 Rd1 #1.11 (LA Knights)"},
+      {year:2026,rd:2,slot:"2.04",orig:null,val:18,label:"2026 Rd2 #2.04"},
+      {year:2026,rd:2,slot:"2.06",orig:"Flint Tropics",val:14,label:"2026 Rd2 #2.06 (Flint Tropics)"},
+      {year:2026,rd:2,slot:"2.12",orig:"WesternU Dolphins",val:7,label:"2026 Rd2 #2.12 (WesternU Dolphins)"},
+      {year:2026,rd:3,slot:"3.04",orig:null,val:10,label:"2026 Rd3 #3.04"},
+      {year:2027,rd:1,slot:null,orig:"Flint Tropics",val:18,label:"2027 Rd1 (Flint Tropics)"},
+      {year:2027,rd:1,slot:null,orig:"LA Knights",val:27,label:"2027 Rd1 (LA Knights)"},
+      {year:2027,rd:1,slot:null,orig:null,val:40,label:"2027 Rd1 (own)"},
+      {year:2027,rd:1,slot:null,orig:"Dimmsdale Ballhogs",val:25,label:"2027 Rd1 (Dimmsdale Ballhogs)"},
+      {year:2027,rd:1,slot:null,orig:"Liberty City Penetrators",val:16,label:"2027 Rd1 (Liberty City Penetrators)"},
+      {year:2027,rd:2,slot:null,orig:"Richmond Oilers",val:12,label:"2027 Rd2 (Richmond Oilers)"},
+      {year:2027,rd:2,slot:null,orig:"Dimmsdale Ballhogs",val:11,label:"2027 Rd2 (Dimmsdale Ballhogs)"},
+      {year:2027,rd:3,slot:null,orig:"Flint Tropics",val:4,label:"2027 Rd3 (Flint Tropics)"},
+      {year:2027,rd:3,slot:null,orig:"Monstars",val:5,label:"2027 Rd3 (Monstars)"},
+      {year:2027,rd:3,slot:null,orig:"No Limit Soldiers",val:6,label:"2027 Rd3 (No Limit Soldiers)"},
+      {year:2027,rd:3,slot:null,orig:null,val:7,label:"2027 Rd3 (own)"},
+      {year:2028,rd:1,slot:null,orig:"Flint Tropics",val:16,label:"2028 Rd1 (Flint Tropics)"},
+      {year:2028,rd:1,slot:null,orig:"Monstars",val:18,label:"2028 Rd1 (Monstars)"},
+      {year:2028,rd:1,slot:null,orig:"WesternU Dolphins",val:19,label:"2028 Rd1 (WesternU Dolphins)"},
+      {year:2028,rd:1,slot:null,orig:"Liberty City Penetrators",val:14,label:"2028 Rd1 (Liberty City Penetrators)"},
+      {year:2028,rd:3,slot:null,orig:null,val:6,label:"2028 Rd3 (own)"},
+    ]
   },
 };
 
@@ -1031,9 +1071,9 @@ const TEAM_PROFILES = {
       "Kyrie Irving (34), DeMar DeRozan (36), Klay Thompson (36), Jimmy Butler (36), Paul George (36), Draymond Green (36) — SIX starters over 34 is a dynasty catastrophe",
       "This roster is in dire need of a complete rebuild — almost no young assets",
       "No elite young player anywhere on the active roster",
-      "Must accept a full tear-down and accumulate picks — cannot patch this roster",
+      "Massive pick capital (394 value, 12 1sts) makes them the most dangerous rebuilding team",
     ],
-    verdict:"The most urgent rebuild situation in the league. Every aging vet needs to be sold for picks and young players. Markkanen and Bridges are the only real trade chips with value."
+    verdict:"The most remarkable rebuild in the league — went from zero picks to 394 pick value and 12 first-rounders. Every aging vet needs to be sold immediately for more young players. With this pick capital, Hickory could be a contender within 3 years."
   },
   "No Limit Soldiers": {
     strengths:[
@@ -1104,11 +1144,11 @@ const TEAM_PROFILES = {
     ],
     weaknesses:[
       "Saddiq Bey and Kelly Oubre are filler veterans — dead dynasty weight",
-      "Almost too much star power — some pieces will need to be traded for depth",
+      "Almost zero picks — just 3 third-rounders across 3 years. Trading away all picks for stars is fine only if they win championships.",
       "Jalen Williams may need more usage than OKC will give — team fit question",
       "Devin Booker (29) is on the older end — sell-high window opening",
     ],
-    verdict:"The most dominant dynasty roster in the league. Five players with 80+ dynasty value under age 25 is unprecedented. This team wins the next 5+ championships if managed correctly."
+    verdict:"The most dominant dynasty roster in the league. Five players with 80+ dynasty value under age 25 is unprecedented. However, with just 3 third-round picks remaining, there is zero margin for error — this team must win championships now."
   },
 };
 
@@ -1705,6 +1745,20 @@ function AddPlayerModal({existing,onSave,onClose}){
 }
 
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
+
+// Format a Date as Central Time (CST/CDT)
+function formatCST(date){
+  if(!date) return "";
+  try{
+    return date.toLocaleString("en-US",{
+      timeZone:"America/Chicago",
+      month:"short",day:"numeric",year:"numeric",
+      hour:"numeric",minute:"2-digit",
+      hour12:true,timeZoneName:"short"
+    });
+  }catch(e){ return date.toLocaleString(); }
+}
+
 function App(){
   const [tab,setTab]=useState("teams");
   const [apiKey,setApiKey]=useState("");
@@ -3708,11 +3762,7 @@ function App(){
                   h("div",{style:{fontSize:9,color:"#9ca3af",marginTop:1}},
                     "FP/G: "+(t.ratingDetail&&t.ratingDetail.starterFPG||"—"))
                 ),
-                // Starter FP/G (real 2025-26 stats via scoring format)
-                h("td",{style:{padding:"9px 10px",borderBottom:"1px solid #f3f4f6",
-                  fontWeight:700,color:"#0891b2"}},
-                  (t.ratingDetail&&t.ratingDetail.starterFPG)||"—"),
-                // Roster FP/G
+                // FP/G
                 h("td",{style:{padding:"9px 10px",borderBottom:"1px solid #f3f4f6",
                   fontWeight:600,color:"#1d4ed8"}},t.sc.fpSum||"—"),
                 // Dynasty score
@@ -3771,10 +3821,19 @@ function App(){
       h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8,marginBottom:8}},
         h("div",null,
           h("div",{style:{fontSize:20,fontWeight:800,marginBottom:2}},"🏀 Hoop Heads Dynasty Hub"),
-          h("div",{style:{fontSize:12,color:"#9ca3af"}},"12-team NBA dynasty · pts(1) ast(1.5) reb(1.25) stl(2) blk(2) 3pm(0.5) to(−0.5) DD(+3) TD(+5) · Real 2025-26 stats")
+          h("div",{style:{fontSize:12,color:"#9ca3af"}},"12-team NBA dynasty · pts(1) ast(1.5) reb(1.25) stl(2) blk(2) 3pm(0.5) to(−0.5) DD(+3) TD(+5) · Real 2025-26 stats"),
+          h("div",{style:{display:"flex",gap:10,flexWrap:"wrap",marginTop:3,alignItems:"center"}},
+            lastRefresh&&h("span",{style:{fontSize:11,color:"#6b7280"}},
+              "Rosters: "+formatCST(lastRefresh)),
+            lastStatsRefresh&&h("span",{style:{fontSize:11,color:"#6b7280"}},
+              " | Stats: "+formatCST(lastStatsRefresh)),
+            !lastRefresh&&!lastStatsRefresh&&h("span",{
+              style:{fontSize:11,color:"#9ca3af",fontStyle:"italic"}},
+              "Not yet refreshed this session")
+          )
         ),
         h("div",{style:{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}},
-          lastRefresh&&h("span",{style:{fontSize:11,color:"#9ca3af"}},"Updated "+lastRefresh.toLocaleTimeString()),
+          lastRefresh&&h("span",{style:{fontSize:11,color:"#9ca3af"}},"Rosters updated: "+formatCST(lastRefresh)),
           refreshMsg&&h("span",{style:{fontSize:12,fontWeight:600,color:refreshMsg.startsWith("✓")?"#15803d":refreshMsg.startsWith("⚠")?"#b91c1c":"#1d4ed8"}},refreshMsg),
           h("button",{
             onClick:function(){
@@ -3792,7 +3851,7 @@ function App(){
             h("span",{style:{fontSize:13}},"📊"),
             statsRefreshing?"Updating stats...":lastStatsRefresh?"Stats live ✓":"Refresh Stats",
             lastStatsRefresh&&h("span",{style:{fontSize:9,opacity:0.7,marginLeft:2}},
-              lastStatsRefresh.toLocaleTimeString())
+              formatCST(lastStatsRefresh))
           ),
           h("button",{onClick:function(){setShowAddPlayer(true);},style:{display:"flex",alignItems:"center",gap:5,padding:"8px 14px",borderRadius:8,border:"1.5px solid #e5e7eb",fontSize:13,cursor:"pointer",fontWeight:600,background:"#fff",color:"#374151"}},
             "+ Add Player",
