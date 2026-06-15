@@ -630,6 +630,13 @@ var DRAFT_PICKS = {
 };
 
 // Pick capital bonus added to dynasty score (scaled: max ~15 pts bonus)
+// Returns live pick data if available, otherwise falls back to static DRAFT_PICKS
+// This is called at module level — livePickData is passed in as argument
+function getPickData(teamName, live){
+  if(live && live[teamName]) return live[teamName];
+  return DRAFT_PICKS[teamName]||{picks:[],totalValue:0,summary:"No data"};
+}
+
 function pickCapitalBonus(teamName){
   var d=DRAFT_PICKS[teamName];
   if(!d||!d.totalValue) return 0;
@@ -1726,6 +1733,135 @@ async function fetchSleeperPlayerNames(ids){
   }catch(e){return {};}
 }
 
+
+// ── TRADED PICKS REFRESH ──────────────────────────────────────────────────────
+// Slot values for 2026 known draft positions
+var SLOT_VALUES_2026 = {
+  "1":{"1":85,"2":75,"3":68,"4":62,"5":56,"6":50,"7":44,"8":38,"9":32,"10":26,"11":20,"12":14},
+  "2":{"1":28,"2":24,"3":21,"4":18,"5":16,"6":14,"7":12,"8":11,"9":10,"10":9,"11":8,"12":7},
+  "3":{"1":14,"2":12,"3":11,"4":10,"5":9,"6":8,"7":7,"8":6,"9":5,"10":5,"11":4,"12":4},
+};
+// Estimated value by originating team + round for future unslotted picks
+var TEAM_PICK_EST_VALS = {
+  "Liberty City Penetrators":{"1":18,"2":8,"3":4},
+  "Flint Tropics":           {"1":20,"2":9,"3":4},
+  "Monstars":                {"1":22,"2":10,"3":5},
+  "Lincoln Railsplitters":   {"1":22,"2":10,"3":5},
+  "WesternU Dolphins":       {"1":24,"2":11,"3":5},
+  "East High Wildcats":      {"1":26,"2":12,"3":5},
+  "Richmond Oilers":         {"1":28,"2":13,"3":5},
+  "Dimmsdale Ballhogs":      {"1":28,"2":12,"3":5},
+  "LA Knights":              {"1":30,"2":13,"3":5},
+  "Mt. Vernon Smelters":     {"1":32,"2":14,"3":6},
+  "No Limit Soldiers":       {"1":40,"2":18,"3":7},
+  "Hickory Huskers":         {"1":44,"2":20,"3":8},
+};
+var YEAR_DISCOUNT = {"2026":1.0,"2027":0.90,"2028":0.80};
+
+function rosterIdToTeam(rosterId, rosterUserMap){
+  return rosterUserMap[rosterId] || ("Roster #"+rosterId);
+}
+
+function calcPickValue(season, round, slot, origTeam){
+  var rd = String(round);
+  var yr = String(season);
+  var disc = YEAR_DISCOUNT[yr] || 0.75;
+  if(slot && SLOT_VALUES_2026[rd] && SLOT_VALUES_2026[rd][String(slot)]){
+    return Math.round(SLOT_VALUES_2026[rd][String(slot)] * disc);
+  }
+  var est = (TEAM_PICK_EST_VALS[origTeam] && TEAM_PICK_EST_VALS[origTeam][rd]) || 20;
+  return Math.round(est * disc);
+}
+
+async function fetchTradedPicks(rosterUserMap){
+  try{
+    var picks = await fetchSleeper("/league/"+LEAGUE_ID+"/traded_picks");
+    if(!Array.isArray(picks)) return null;
+
+    // Also fetch draft to get actual slot assignments for current year
+    var draftSlots = {};
+    try{
+      var drafts = await fetchSleeper("/league/"+LEAGUE_ID+"/drafts");
+      if(Array.isArray(drafts) && drafts.length > 0){
+        var draftId = drafts[0].draft_id;
+        var draftPicks = await fetchSleeper("/draft/"+draftId+"/picks");
+        if(Array.isArray(draftPicks)){
+          draftPicks.forEach(function(dp){
+            // Map roster_id + round to pick slot
+            var key = dp.roster_id+"_"+dp.round;
+            draftSlots[key] = dp.pick_no;
+          });
+        }
+      }
+    }catch(e){
+      // Draft not started yet — no slot info available
+    }
+
+    // Group picks by current owner (roster_id = owner_id)
+    var byOwner = {};
+    picks.forEach(function(pick){
+      var ownerId = pick.owner_id;
+      if(!byOwner[ownerId]) byOwner[ownerId] = [];
+
+      var origTeam = rosterIdToTeam(pick.roster_id, rosterUserMap);
+      var ownerTeam = rosterIdToTeam(ownerId, rosterUserMap);
+      var season = pick.season;
+      var round = pick.round;
+
+      // Try to get slot from draft data
+      var slot = draftSlots[pick.roster_id+"_"+round] || null;
+      var slotStr = slot ? (round+"."+String(slot).padStart(2,"0")) : null;
+
+      var val = calcPickValue(season, round, slotStr, origTeam);
+      var label = season+" Rd"+round+(slotStr?" #"+slotStr:"")+(origTeam!==ownerTeam?" ("+origTeam+")":"");
+
+      byOwner[ownerId].push({
+        year: parseInt(season),
+        rd: round,
+        slot: slotStr,
+        orig: origTeam !== ownerTeam ? origTeam : null,
+        val: val,
+        label: label,
+      });
+    });
+
+    // Build DRAFT_PICKS-format objects per team
+    var result = {};
+    Object.keys(TEAMS_META).forEach(function(teamName){
+      result[teamName] = {picks:[], totalValue:0, summary:"Live from Sleeper"};
+    });
+
+    Object.keys(byOwner).forEach(function(rosterId){
+      var teamName = rosterIdToTeam(rosterId, rosterUserMap);
+      if(!result[teamName]) result[teamName] = {picks:[], totalValue:0, summary:"Live from Sleeper"};
+      byOwner[rosterId].forEach(function(p){
+        result[teamName].picks.push(p);
+        result[teamName].totalValue += p.val;
+      });
+      // Sort picks by year then round
+      result[teamName].picks.sort(function(a,b){
+        return a.year!==b.year ? a.year-b.year : a.rd-b.rd;
+      });
+    });
+
+    // Update summaries
+    Object.keys(result).forEach(function(teamName){
+      var d = result[teamName];
+      var firsts = d.picks.filter(function(p){return p.rd===1;}).length;
+      if(d.totalValue===0){
+        d.summary = "No draft picks — all assets traded away.";
+      } else {
+        d.summary = d.picks.length+" picks · "+firsts+" 1st round pick"+(firsts!==1?"s":"")+" · Total value: "+d.totalValue;
+      }
+    });
+
+    return result;
+  }catch(e){
+    console.warn("Traded picks fetch failed:", e.message);
+    return null;
+  }
+}
+
 async function refreshRosters(customPlayers){
   const [rosters,users]=await Promise.all([
     fetchSleeper("/league/"+LEAGUE_ID+"/rosters"),
@@ -1736,13 +1872,23 @@ async function refreshRosters(customPlayers){
   allKnown.forEach(p=>{idMap[p.id]=p;});
   const userById={};
   users.forEach(u=>{userById[u.user_id]=u;});
+  // Build roster_id -> teamName map for pick ownership resolution
+  const rosterUserMap={};
+  rosters.forEach(roster=>{
+    const user=userById[roster.owner_id];
+    if(!user)return;
+    const dn=user.display_name;
+    const teamName=TEAM_NAMES.find(t=>TEAMS_META[t].owner.toLowerCase()===dn.toLowerCase())||(user.metadata&&user.metadata.team_name)||dn;
+    rosterUserMap[String(roster.roster_id)]=teamName;
+  });
+
   const updated=[];
   const unknownIds=new Set();
   rosters.forEach(roster=>{
     const user=userById[roster.owner_id];
     if(!user)return;
     const dn=user.display_name;
-    const teamName=TEAM_NAMES.find(t=>TEAMS_META[t].owner.toLowerCase()===dn.toLowerCase())||(user.metadata&&user.metadata.team_name)||dn;
+    const teamName=rosterUserMap[String(roster.roster_id)]||dn;
     const starterIds=new Set((roster.starters||[]).map(String).filter(id=>id!=="0"));
     const taxiIds=new Set((roster.taxi||[]).map(String));
     const irIds=new Set((roster.reserve||[]).map(String));
@@ -1766,7 +1912,9 @@ async function refreshRosters(customPlayers){
       }
     });
   }
-  return{players:updated,unknownCount:unknownIds.size};
+  // Fetch traded picks from Sleeper
+  const livePicks = await fetchTradedPicks(rosterUserMap);
+  return{players:updated,unknownCount:unknownIds.size,livePicks:livePicks};
 }
 
 // ── STYLE HELPERS ─────────────────────────────────────────────────────────────
@@ -1879,6 +2027,33 @@ function formatCST(date){
 
 function App(){
   const [tab,setTab]=useState("teams");
+  const [countdown, setCountdown] = useState("");
+
+  // Compute time until next 5:00 AM CT (when GitHub Actions runs at 11:00 UTC)
+  useEffect(function(){
+    function getNextRefresh(){
+      var now = new Date();
+      // Next 11:00 UTC
+      var next = new Date(now);
+      next.setUTCHours(11, 0, 0, 0);
+      if(next <= now) next.setUTCDate(next.getUTCDate() + 1);
+      return next;
+    }
+    function updateCountdown(){
+      var diff = getNextRefresh() - new Date();
+      var h = Math.floor(diff / 3600000);
+      var m = Math.floor((diff % 3600000) / 60000);
+      var s = Math.floor((diff % 60000) / 1000);
+      setCountdown(
+        (h > 0 ? h + "h " : "") +
+        (m > 0 || h > 0 ? m + "m " : "") +
+        s + "s"
+      );
+    }
+    updateCountdown();
+    var timer = setInterval(updateCountdown, 1000);
+    return function(){ clearInterval(timer); };
+  }, []);
   const [apiKey,setApiKey]=useState("");
   const [showApiKeyModal,setShowApiKeyModal]=useState(false);
   const [liveStats,setLiveStats]=useState(null);     // overrides STATS when set
@@ -1923,6 +2098,7 @@ function App(){
   const [liveRosters,setLiveRosters]=useState(null);
   const [customPlayers,setCustomPlayers]=useState([]);
   const [refreshing,setRefreshing]=useState(false);
+  const [livePickData,setLivePickData]=useState(null);
   const [refreshMsg,setRefreshMsg]=useState("");
   const [lastRefresh,setLastRefresh]=useState(null);
   const [modal,setModal]=useState(null); // player detail
@@ -1971,9 +2147,22 @@ function App(){
       const liveFpSum=Math.round(
         ps.filter(function(p){return p.slot==="starter";})
           .reduce(function(s,p){const f=getFPLive(p.name);return f?s+f:s;},0)*10)/10;
-      return Object.assign({name},TEAMS_META[name],sc,{fpSum:liveFpSum||sc.fpSum});
+      // Use live pick data if available
+      const pickInfo=getPickData(name,livePickData);
+      const pickBonus=Math.round(Math.min((pickInfo.totalValue||0)/30,15));
+      const liveOverall=Math.round(
+        (sc.starterAvg*0.55)+(sc.rosterAvg*0.25)+(sc.taxiAvg*0.1)+
+        ((sc.top?(sc.top[dk]||0):0)*0.1)+pickBonus
+      );
+      return Object.assign({name},TEAMS_META[name],sc,{
+        fpSum:liveFpSum||sc.fpSum,
+        pickVal:pickInfo.totalValue||0,
+        pickCount:(pickInfo.picks||[]).length,
+        pickBonus:pickBonus,
+        overall:liveOverall,
+      });
     }).sort(function(a,b){return b.overall-a.overall;});
-  },[activeRosters,dk,liveStats]);
+  },[activeRosters,dk,liveStats,livePickData]);
 
   const uniqPlayers=useMemo(function(){
     const s=new Set();
@@ -2006,8 +2195,10 @@ function App(){
       const result=await refreshRosters(customPlayers);
       setLiveRosters(result.players);
       setLastRefresh(new Date());
+      if(result.livePicks) setLivePickData(result.livePicks);
       const u=result.unknownCount;
-      setRefreshMsg(u>0?"✓ Synced · "+result.players.length+" players · "+u+" unknown"+(u>1?"s":"")+" — yellow badges":"✓ Rosters synced · "+result.players.length+" players");
+      const pickMsg=result.livePicks?" · Draft capital updated":"";
+      setRefreshMsg(u>0?"✓ Synced · "+result.players.length+" players · "+u+" unknown"+(u>1?"s":"")+" — yellow badges"+pickMsg:"✓ Rosters synced · "+result.players.length+" players"+pickMsg);
       setTimeout(function(){setRefreshMsg("");},6000);
       setShowManual(false);
     }catch(e){
@@ -2288,13 +2479,17 @@ function App(){
         ),
         // Draft Capital section
         (function(){
-          var dp=DRAFT_PICKS[t.name];
+          var dp=getPickData(t.name,livePickData);
           if(!dp) return null;
           var noPicksStyle={background:"#fee2e2",borderRadius:10,padding:"10px 14px",marginBottom:10};
           var hasPicksStyle={background:"#fdf4ff",borderRadius:10,padding:"10px 14px",marginBottom:10};
           return h("div",{style:dp.totalValue===0?noPicksStyle:hasPicksStyle},
             h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}},
+              h("div",{style:{display:"flex",alignItems:"center",gap:6}},
               h("div",{style:{fontSize:11,fontWeight:800,color:dp.totalValue===0?"#991b1b":"#7e22ce"}},"DRAFT CAPITAL"),
+              livePickData&&h("span",{style:{fontSize:9,background:"#dcfce7",color:"#14532d",
+                borderRadius:4,padding:"1px 5px",fontWeight:700}},"LIVE")
+            ),
               h("div",{style:{display:"flex",gap:8,alignItems:"center"}},
                 h("span",{style:{fontWeight:800,fontSize:16,color:dp.totalValue===0?"#991b1b":"#7e22ce"}},dp.totalValue===0?"NONE":dp.totalValue),
                 dp.totalValue>0&&h("span",{style:{fontSize:11,color:"#9ca3af"}},dp.picks.length+" picks")
@@ -2700,6 +2895,7 @@ function App(){
 
     const ps=activeRosters.filter(function(p){return p.team===selTeam;});
     const sc=teamScore(ps,dk,selTeam);
+    const livePickInfo=getPickData(selTeam,livePickData);
     const meta=TEAMS_META[selTeam]||{};
     const gc=GS(meta.grade||"C"),tc=TS(meta.tier||"Rebuilding");
 
@@ -2769,7 +2965,7 @@ function App(){
            ["Taxi",sc.taxiAvg,"#eff6ff","#1d4ed8"],
            ["Avg age",sc.avgAge,sc.avgAge>=32?"#fee2e2":"#f0fdf4",sc.avgAge>=32?"#b91c1c":"#14532d"],
            ["FP/G",sc.fpSum||"—","#f3f4f6","#374151"],
-           ["Pick Val",sc.pickVal||0,sc.pickVal>=100?"#fdf4ff":"#f9fafb",sc.pickVal>=100?"#7e22ce":"#374151"]
+           ["Pick Val",livePickInfo.totalValue||sc.pickVal||0,(livePickInfo.totalValue||sc.pickVal||0)>=100?"#fdf4ff":"#f9fafb",(livePickInfo.totalValue||sc.pickVal||0)>=100?"#7e22ce":"#374151"]
           ].map(function(x){
             return h("div",{key:x[0],style:{background:x[2],borderRadius:8,padding:"7px 10px",textAlign:"center"}},
               h("div",{style:{fontSize:11,color:x[3],opacity:0.7,marginBottom:1}},x[0]),
@@ -2910,7 +3106,42 @@ function App(){
             TEAM_NAMES.map(function(t){return h("option",{key:t},t);}))
         )
       ),
-      h("div",{style:{marginBottom:"1.25rem"}},
+      // ── NEXT AUTO-REFRESH COUNTDOWN BANNER ────────────────────────────────────
+    h("div",{style:{
+      background:"linear-gradient(90deg,#1e3a8a,#2563eb)",
+      borderRadius:10,padding:"8px 16px",marginBottom:12,
+      display:"flex",alignItems:"center",justifyContent:"space-between",
+      flexWrap:"wrap",gap:8}},
+      h("div",{style:{display:"flex",alignItems:"center",gap:8}},
+        h("span",{style:{fontSize:14}},"🔄"),
+        h("div",null,
+          h("div",{style:{fontSize:12,fontWeight:700,color:"#fff"}},
+            "Next Auto-Refresh in: ",
+            h("span",{style:{fontSize:14,fontWeight:800,color:"#93c5fd",
+              fontFamily:"monospace",letterSpacing:1}},countdown)
+          ),
+          h("div",{style:{fontSize:11,color:"rgba(255,255,255,0.65)"}},
+            "Runs daily at 5:00 AM CT · Syncs Sleeper rosters + live NBA stats automatically")
+        )
+      ),
+      h("div",{style:{display:"flex",gap:10,alignItems:"center"}},
+        lastRefresh&&h("div",{style:{textAlign:"right"}},
+          h("div",{style:{fontSize:10,color:"rgba(255,255,255,0.6)"}},"Last roster sync"),
+          h("div",{style:{fontSize:11,fontWeight:700,color:"#93c5fd"}},formatCST(lastRefresh))
+        ),
+        lastStatsRefresh&&h("div",{style:{textAlign:"right"}},
+          h("div",{style:{fontSize:10,color:"rgba(255,255,255,0.6)"}},"Last stats sync"),
+          h("div",{style:{fontSize:11,fontWeight:700,color:"#86efac"}},formatCST(lastStatsRefresh))
+        ),
+        livePickData&&h("div",{style:{
+          background:"rgba(255,255,255,0.15)",borderRadius:6,
+          padding:"4px 10px",textAlign:"center"}},
+          h("div",{style:{fontSize:10,color:"rgba(255,255,255,0.6)"}},"Draft capital"),
+          h("div",{style:{fontSize:11,fontWeight:800,color:"#86efac"}},"✓ LIVE")
+        )
+      )
+    ),
+    h("div",{style:{marginBottom:"1.25rem"}},
         stats.map(function(s){
           const mx=Math.max(s[1],s[2],1);
           return h("div",{key:s[0],style:{display:"flex",alignItems:"center",gap:8,marginBottom:7}},
@@ -4198,6 +4429,12 @@ function App(){
         h("div",{style:{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}},
           lastRefresh&&h("span",{style:{fontSize:11,color:"#9ca3af"}},"Rosters updated: "+formatCST(lastRefresh)),
           refreshMsg&&h("span",{style:{fontSize:12,fontWeight:600,color:refreshMsg.startsWith("✓")?"#15803d":refreshMsg.startsWith("⚠")?"#b91c1c":"#1d4ed8"}},refreshMsg),
+          livePickData&&h("span",{style:{
+            fontSize:11,fontWeight:700,
+            background:"#dcfce7",color:"#14532d",
+            borderRadius:6,padding:"2px 8px",
+            display:"inline-flex",alignItems:"center",gap:3}},
+            "✓ Picks live"),
           h("button",{
             onClick:function(){
               if(!apiKey.trim()) setShowApiKeyModal(true);
