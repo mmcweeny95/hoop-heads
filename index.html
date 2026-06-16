@@ -3774,128 +3774,8 @@ function App(){
   }
 
 
-  // -- TRADE HISTORY TAB
-  function TradeHistoryTab(){
-    var ls=useState([]),lding=useState(false),err=useState(null),scored=useState([]),scoring=useState(false),srt=useState("fairness");
-    var trades=ls[0],setTrades=ls[1],loading=lding[0],setLoading=lding[1],error=err[0],setError=err[1];
-    var scoredTrades=scored[0],setScoredTrades=scored[1],isScoring=scoring[0],setIsScoring=scoring[1];
-    var sort=srt[0],setSort=srt[1];
-
-    async function loadTrades(){
-      setLoading(true);setError(null);setTrades([]);setScoredTrades([]);
-      try{
-        var allTrades=[];
-        for(var week=1;week<=25;week++){
-          try{
-            var txns=await fetchSleeper("/league/"+LEAGUE_ID+"/transactions/"+week);
-            if(!Array.isArray(txns)||txns.length===0)break;
-            txns.forEach(function(t){if(t.type==="trade"&&t.status==="complete")allTrades.push(t);});
-          }catch(e){break;}
-        }
-        setTrades(allTrades);
-        if(allTrades.length===0)setError("No completed trades found. Make sure Refresh Rosters works first (requires GitHub Pages URL).");
-      }catch(e){setError("Failed: "+e.message);}
-      setLoading(false);
-    }
-
-    async function scoreTrades(){
-      if(!trades.length)return;
-      setIsScoring(true);
-      var rMap={};
-      activeRosters.forEach(function(p){if(p.sleeperPlayerId)rMap[p.sleeperPlayerId]=p;});
-      var results=[];
-      for(var i=0;i<trades.length;i++){
-        var trade=trades[i];
-        var adds=trade.adds||{},drops=trade.drops||{},pickAdds=trade.draft_picks||[];
-        var date=new Date(trade.status_updated||trade.created);
-        var sides={};
-        Object.keys(adds).forEach(function(pid){
-          var rid=String(adds[pid]);if(!sides[rid])sides[rid]={gets:[],gives:[]};
-          var pl=rMap[pid];sides[rid].gets.push(pl?(pl.name+" ("+pl.pos+",age "+(pl.age||"?")+",dyn "+(pl[dk]||"?")+")"):("Player#"+pid));
-        });
-        Object.keys(drops).forEach(function(pid){
-          var rid=String(drops[pid]);if(!sides[rid])sides[rid]={gets:[],gives:[]};
-          var pl=rMap[pid];sides[rid].gives.push(pl?(pl.name+" ("+pl.pos+",age "+(pl.age||"?")+",dyn "+(pl[dk]||"?")+")"):("Player#"+pid));
-        });
-        pickAdds.forEach(function(pk){
-          var rid=String(pk.owner_id);if(!sides[rid])sides[rid]={gets:[],gives:[]};
-          sides[rid].gets.push(pk.season+" Rd"+pk.round+" pick");
-        });
-        var desc=Object.keys(sides).map(function(rid){
-          var s=sides[rid];
-          return "Roster "+rid+" receives ["+s.gets.join("; ")+"] gives ["+s.gives.join("; ")+"]";
-        }).join(" | ");
-        var prompt="Dynasty fantasy basketball trade. Scoring: pts(1) ast(1.5) reb(1.25) stl(2) blk(2) 3pm(0.5) to(-0.5) DD(+3) TD(+5). 12-team league, 3-round rookie draft.\n\nTrade: "+desc+"\n\nReturn ONLY JSON, no markdown:\n{\"score\":75,\"winner\":\"Roster ID or name\",\"loser\":\"Roster ID or name\",\"summary\":\"2 sentence analysis\"}";
-        try{
-          var resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:250,messages:[{role:"user",content:prompt}]})});
-          var data=await resp.json();
-          var txt=(data.content&&data.content[0]&&data.content[0].text)||"{}";
-          var analysis=JSON.parse(txt.replace(/```json|```/g,"").trim());
-          results.push({trade:trade,sides:sides,date:date,analysis:analysis,desc:desc});
-        }catch(e2){
-          results.push({trade:trade,sides:sides,date:date,analysis:{score:50,winner:"?",loser:"?",summary:"Analysis unavailable."},desc:desc});
-        }
-        await new Promise(function(r){setTimeout(r,400);});
-      }
-      setScoredTrades(results);setIsScoring(false);
-    }
-
-    var displayed=sort==="date"
-      ?[...scoredTrades].sort(function(a,b){return b.date-a.date;})
-      :[...scoredTrades].sort(function(a,b){return a.analysis.score-b.analysis.score;});
-
-    function Badge(score){
-      var bg=score>=90?"#dcfce7":score>=75?"#dbeafe":score>=55?"#fef9c3":"#fee2e2";
-      var fg=score>=90?"#14532d":score>=75?"#1e3a8a":score>=55?"#713f12":"#991b1b";
-      var lbl=score>=90?"FAIR":score>=75?"CLOSE":score>=55?"UNEVEN":"LOPSIDED";
-      return h("div",{style:{textAlign:"center",minWidth:70}},
-        h("div",{style:{background:bg,color:fg,borderRadius:8,padding:"6px 10px",fontSize:24,fontWeight:900,fontFamily:"monospace",marginBottom:2}},score),
-        h("div",{style:{fontSize:9,fontWeight:700,color:fg,letterSpacing:0.5}},lbl));
-    }
-
-    return h("div",null,
-      h("div",{style:{background:"linear-gradient(135deg,#1e3a8a,#7c3aed)",borderRadius:12,padding:"1.25rem",marginBottom:"1.25rem",color:"#fff"}},
-        h("div",{style:{fontSize:18,fontWeight:800,marginBottom:4}},"Trade History & AI Fairness Ratings"),
-        h("div",{style:{fontSize:12,opacity:0.85}},"Every trade in HoopHeads history scored 1-100 by Claude AI based on dynasty value, age, and league scoring")),
-      trades.length===0&&!loading&&!error&&h("div",{style:{textAlign:"center",padding:"3rem 1rem"}},
-        h("div",{style:{fontSize:40,marginBottom:12}},"[Trade History]"),
-        h("div",{style:{fontSize:14,color:"#6b7280",marginBottom:20,maxWidth:400,margin:"0 auto 20px"}},"Fetches all trades from HoopHeads history, then scores each one with Claude AI for fairness."),
-        h("button",{onClick:loadTrades,style:{background:"#1e3a8a",color:"#fff",border:"none",borderRadius:10,padding:"14px 32px",fontSize:16,fontWeight:700,cursor:"pointer"}},"Load Trade History")),
-      loading&&h("div",{style:{textAlign:"center",padding:"2rem",color:"#6b7280",fontSize:14}},"Loading trades from Sleeper API..."),
-      error&&h("div",{style:{background:"#fee2e2",border:"1px solid #fca5a5",borderRadius:8,padding:"1rem",color:"#991b1b",fontSize:13,marginBottom:12}},error),
-      trades.length>0&&scoredTrades.length===0&&!isScoring&&h("div",{style:{background:"#f0f9ff",border:"1px solid #bfdbfe",borderRadius:10,padding:"1rem",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}},
-        h("div",null,h("div",{style:{fontWeight:700,color:"#1e3a8a"}},"Found "+trades.length+" completed trades"),h("div",{style:{fontSize:12,color:"#6b7280",marginTop:2}},"Score each one with Claude AI (takes ~"+(trades.length*0.5).toFixed(0)+"s)")),
-        h("button",{onClick:scoreTrades,style:{background:"#7c3aed",color:"#fff",border:"none",borderRadius:10,padding:"10px 24px",fontSize:14,fontWeight:700,cursor:"pointer"}},"Score with AI")),
-      isScoring&&h("div",{style:{background:"#faf5ff",border:"1px solid #c4b5fd",borderRadius:10,padding:"1rem",marginBottom:12,textAlign:"center"}},
-        h("div",{style:{fontSize:14,fontWeight:700,color:"#7c3aed"}},
-          "Analyzing trades... "+scoredTrades.length+" / "+trades.length),
-        h("div",{style:{background:"#e9d5ff",borderRadius:4,height:8,overflow:"hidden",marginTop:8,width:"100%"}},
-          h("div",{style:{width:Math.round(scoredTrades.length/Math.max(trades.length,1)*100)+"%",background:"#7c3aed",height:"100%",transition:"width 0.3s"}}))),
-      scoredTrades.length>0&&h("div",null,
-        h("div",{style:{display:"flex",gap:8,alignItems:"center",marginBottom:12,flexWrap:"wrap"}},
-          h("span",{style:{fontSize:14,fontWeight:700,color:"#374151"}},scoredTrades.length+" trades rated"),
-          h("select",{value:sort,onChange:function(e){setSort(e.target.value);},style:{padding:"6px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13}},
-            h("option",{value:"fairness"},"Most Lopsided First"),
-            h("option",{value:"date"},"Most Recent First")),
-          h("button",{onClick:function(){setScoredTrades([]);},style:{padding:"6px 12px",borderRadius:8,border:"1px solid #e5e7eb",background:"#fff",fontSize:12,cursor:"pointer",color:"#6b7280"}},"Clear & Re-score")),
-        displayed.map(function(item,idx){
-          var a=item.analysis,sc=Math.max(1,Math.min(100,a.score||50));
-          return h("div",{key:idx,style:{display:"flex",gap:12,alignItems:"flex-start",background:idx%2===0?"#fff":"#fafafa",border:"1px solid #e5e7eb",borderRadius:12,padding:"1rem",marginBottom:8,flexWrap:"wrap"}},
-            Badge(sc),
-            h("div",{style:{flex:1,minWidth:200}},
-              h("div",{style:{fontSize:11,color:"#9ca3af",marginBottom:6}},item.date.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})),
-              h("div",{style:{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}},
-                a.winner&&h("span",{style:{background:"#dcfce7",color:"#14532d",borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:700}},"Winner: "+a.winner),
-                a.loser&&h("span",{style:{background:"#fee2e2",color:"#991b1b",borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:700}},"Loser: "+a.loser)),
-              h("div",{style:{fontSize:13,color:"#374151",lineHeight:1.6,background:"#f9fafb",borderRadius:6,padding:"8px 10px",marginBottom:6}},a.summary||""),
-              h("div",{style:{fontSize:11,color:"#9ca3af",fontFamily:"monospace",wordBreak:"break-word"}},item.desc.slice(0,240)+(item.desc.length>240?"...":""))));
-        })
-      )
-    );
-  }
-
   // ── MAIN RENDER ─────────────────────────────────────────────────────────────
-  const tabs=[["teams","Team Rankings"],["players","Player Rankings"],["roster","Roster View"],["compare","Head-to-Head"],["trade","Trade Simulator"],["playoffs","Playoff Predictor"],["draft","Draft Strategy"],["mockdraft","Mock Draft"],["tradehistory","Trade History"]];
+  const tabs=[["teams","Team Rankings"],["players","Player Rankings"],["roster","Roster View"],["compare","Head-to-Head"],["trade","Trade Simulator"],["playoffs","Playoff Predictor"],["draft","Draft Strategy"],["mockdraft","Mock Draft"]];
 
   return h("div",{style:{fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",maxWidth:1020,margin:"0 auto",padding:"1rem 0.75rem",fontSize:14,color:"#111"}},
     // Modals
@@ -3980,8 +3860,7 @@ function App(){
     tab==="trade"&&h(TradeTab),
     tab==="draft"&&h(DraftTab),
     tab==="playoffs"&&h(PlayoffTab),
-    tab==="mockdraft"&&h(MockDraftTab),
-    tab==="tradehistory"&&h(TradeHistoryTab)
+    tab==="mockdraft"&&h(MockDraftTab)
   );
 }
 
