@@ -3353,8 +3353,7 @@ function App(){
           gamesLeft,
           projW: Math.round(blendedW*10)/10,
           projL: Math.round((20-blendedW)*10)/10,
-          rating: typeof ratings[name]==="objec
-t"?(ratings[name].total||50):Math.round(ratings[name]||50),
+          rating: typeof ratings[name]==="object"?(ratings[name].total||50):Math.round(ratings[name]||50),
           ratingDetail: typeof ratings[name]==="object"?ratings[name]:{},
           playoff: playoffOdds[name]||{prob:0,avgSeed:0},
         };
