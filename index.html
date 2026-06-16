@@ -4,8 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Hoop Heads Dynasty Hub</title>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+<script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+<script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8fafc;color:#111;font-size:14px;line-height:1.4}
@@ -1820,18 +1820,18 @@ function App(){
   },[activeRosters]);
 
   const filteredPlayers=useMemo(function(){
-    const getV=function(p){return sortBy==="dyn"?p[dk]||0:sortBy==="fp"?getFPLive(p.name)||0:sortBy==="age"?-p.age:0;};
+    const getV=function(p){try{return sortBy==="dyn"?p[dk]||0:sortBy==="fp"?getFPLive(p.name)||0:sortBy==="age"?-(p.age||0):0;}catch(e){return 0;}};
     return uniqPlayers
       .filter(function(p){return posF==="All"||p.pos===posF;})
       .filter(function(p){return slotF==="All"||p.slot===slotF;})
       .filter(function(p){return teamF==="All"||p.team===teamF;})
-      .filter(function(p){return p.age<=ageMax;})
+      .filter(function(p){return !p.age||p.age<=ageMax;})
       .filter(function(p){
         if(!search)return true;
         const q=search.toLowerCase();
-        return p.name.toLowerCase().includes(q)||p.team.toLowerCase().includes(q)||(p.nba||"").toLowerCase().includes(q);
+        return (p.name||"").toLowerCase().includes(q)||(p.team||"").toLowerCase().includes(q)||(p.nba||"").toLowerCase().includes(q)||(p.pos||"").toLowerCase().includes(q);
       })
-      .sort(function(a,b){return sortBy==="name"?a.name.localeCompare(b.name):getV(b)-getV(a);});
+      .sort(function(a,b){return sortBy==="name"?(a.name||"").localeCompare(b.name||""):getV(b)-getV(a);});
   },[uniqPlayers,posF,slotF,teamF,sortBy,search,ageMax,dk]);
 
   const [showManual,setShowManual]=useState(false);
@@ -3353,7 +3353,8 @@ function App(){
           gamesLeft,
           projW: Math.round(blendedW*10)/10,
           projL: Math.round((20-blendedW)*10)/10,
-          rating: typeof ratings[name]==="object"?(ratings[name].total||50):Math.round(ratings[name]||50),
+          rating: typeof ratings[name]==="objec
+t"?(ratings[name].total||50):Math.round(ratings[name]||50),
           ratingDetail: typeof ratings[name]==="object"?ratings[name]:{},
           playoff: playoffOdds[name]||{prob:0,avgSeed:0},
         };
