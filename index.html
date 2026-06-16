@@ -45,8 +45,8 @@ function calcFP(s){
 }
 
 // ── REAL 2025-26 STATS ──────────────────────────────────────────────────────
-var LAST_ROSTER_REFRESH = null;
-var LAST_STATS_REFRESH  = null;
+var LAST_ROSTER_REFRESH=null;
+var LAST_STATS_REFRESH=null;
 
 const STATS={
   // 2025-26 NBA Regular Season final stats (verified from landofbasketball.com, fantasyteamadvice.com)
@@ -593,10 +593,7 @@ var DRAFT_PICKS = {
 };
 
 // Pick capital bonus added to dynasty score (scaled: max ~15 pts bonus)
-function getPickData(teamName,live){
-  if(live&&live[teamName]) return live[teamName];
-  return DRAFT_PICKS[teamName]||{picks:[],totalValue:0,summary:"No data"};
-}
+function getPickData(t,live){if(live&&live[t])return live[t];return DRAFT_PICKS[t]||{picks:[],totalValue:0,summary:"No data"};}
 
 function pickCapitalBonus(teamName){
   var d=DRAFT_PICKS[teamName];
@@ -605,47 +602,43 @@ function pickCapitalBonus(teamName){
   return Math.round(Math.min(d.totalValue/30, 15));
 }
 
-// ── 2026 MOCK DRAFT (HoopHeads) ──────────────────────────────────────────────
 var MOCK_DRAFT_2026 = [
-  // Round 1
-  {pick:1,slot:"1.01",round:1,team:"East High Wildcats",orig:null,prospect:{rank:2,br_pick:3,name:"Cameron Boozer",pos:"PF",age:18,dyn:85,proj3:87,note:"Walking DD machine. Best multi-cat big in the class — 22.5/10.2/4.1. Kevin Love comp."}},
-  {pick:2,slot:"1.02",round:1,team:"No Limit Soldiers",orig:null,prospect:{rank:1,br_pick:1,name:"AJ Dybantsa",pos:"SF",age:19,dyn:88,proj3:90,note:"Consensus #1. 25.5ppg, fewest holes of any prospect. No Limit gets their cornerstone."}},
-  {pick:3,slot:"1.03",round:1,team:"No Limit Soldiers",orig:"Mt. Vernon Smelters",prospect:{rank:3,br_pick:2,name:"Darryn Peterson",pos:"SG",age:19,dyn:86,proj3:88,note:"Anthony Edwards comp. Three top-3 picks — historically dominant haul for No Limit."}},
-  {pick:4,slot:"1.04",round:1,team:"No Limit Soldiers",orig:"Hickory Huskers",prospect:{rank:5,br_pick:5,name:"Keaton Wagler",pos:"PG",age:19,dyn:80,proj3:82,note:"Best PG in the class. Jamal Murray comp. Perfect around Cam Thomas."}},
-  {pick:5,slot:"1.05",round:1,team:"Hickory Huskers",orig:"Dimmsdale Ballhogs",prospect:{rank:4,br_pick:4,name:"Caleb Wilson",pos:"PF",age:19,dyn:82,proj3:84,note:"Hickory's cornerstone. Some scouts prefer Wilson to Boozer — explosion, ball-handling PF."}},
-  {pick:6,slot:"1.06",round:1,team:"No Limit Soldiers",orig:"Flint Tropics",prospect:{rank:7,br_pick:6,name:"Darius Acuff Jr.",pos:"PG",age:18,dyn:76,proj3:79,note:"First freshman since Pete Maravich to lead SEC in total points AND assists. Damian Lillard comp."}},
-  {pick:7,slot:"1.07",round:1,team:"No Limit Soldiers",orig:"Monstars",prospect:{rank:6,br_pick:12,name:"Aday Mara",pos:"C",age:20,dyn:78,proj3:80,note:"FANTASY STEAL: BR #12, Fantasy #6. 7-foot-3 with 12% blk AND 19% ast rate."}},
-  {pick:8,slot:"1.08",round:1,team:"LA Knights",orig:"Liberty City Penetrators",prospect:{rank:8,br_pick:7,name:"Kingston Flemings",pos:"PG",age:19,dyn:74,proj3:77,note:"Led combine in 3pt drill. Top-5 athleticism. De'Aaron Fox comp. LA's young PG."}},
-  {pick:9,slot:"1.09",round:1,team:"Lincoln Railsplitters",orig:null,prospect:{rank:9,br_pick:8,name:"Mikel Brown Jr.",pos:"SG",age:20,dyn:72,proj3:75,note:"Set ACC freshman scoring record. Elite creativity and shotmaking. Back healthy."}},
-  {pick:10,slot:"1.10",round:1,team:"Hickory Huskers",orig:"Richmond Oilers",prospect:{rank:10,br_pick:9,name:"Brayden Burries",pos:"SG",age:20,dyn:70,proj3:73,note:"Derrick White comp. Three-level scoring, downhill attacking, defensive tools."}},
-  {pick:11,slot:"1.11",round:1,team:"Hickory Huskers",orig:"LA Knights",prospect:{rank:11,br_pick:10,name:"Nate Ament",pos:"SF",age:19,dyn:68,proj3:71,note:"6-foot-9.5 wing with shotmaking and defensive tools. Three 1sts for Hickory."}},
-  {pick:12,slot:"1.12",round:1,team:"Mt. Vernon Smelters",orig:"WesternU Dolphins",prospect:{rank:12,br_pick:13,name:"Yaxel Lendeborg",pos:"PF",age:23,dyn:66,proj3:68,note:"National champion, Aaron Gordon comp. Ready-now, high-floor piece for Mt. Vernon."}},
-  // Round 2
-  {pick:13,slot:"2.01",round:2,team:"East High Wildcats",orig:null,prospect:{rank:13,br_pick:11,name:"Karim Lopez",pos:"PF",age:19,dyn:65,proj3:68,note:"Franz Wagner comp from NBL. Physical 4, spot-up shooting, ball-screen IQ."}},
-  {pick:14,slot:"2.02",round:2,team:"Monstars",orig:"No Limit Soldiers",prospect:{rank:14,br_pick:14,name:"Labaron Philon",pos:"PG",age:20,dyn:63,proj3:67,note:"Dejounte Murray comp. Creative scorer, improved shooting and finishing."}},
-  {pick:15,slot:"2.03",round:2,team:"Dimmsdale Ballhogs",orig:"Mt. Vernon Smelters",prospect:{rank:16,br_pick:18,name:"Hannes Steinbach",pos:"C",age:19,dyn:59,proj3:63,note:"Best rebounder in the class (11.8 rpg). 7-foot-2 wingspan, soft hands, footwork."}},
-  {pick:16,slot:"2.04",round:2,team:"Hickory Huskers",orig:null,prospect:{rank:15,br_pick:16,name:"Ebuka Okorie",pos:"PG",age:19,dyn:60,proj3:64,note:"7th in nation scoring as freshman. Elite creation and rim pressure."}},
-  {pick:17,slot:"2.05",round:2,team:"LA Knights",orig:"Dimmsdale Ballhogs",prospect:{rank:17,br_pick:15,name:"Cameron Carr",pos:"SG",age:20,dyn:58,proj3:62,note:"30pts in combine scrimmage. 7-foot wingspan. Three-and-D floor."}},
-  {pick:18,slot:"2.06",round:2,team:"Hickory Huskers",orig:"Flint Tropics",prospect:{rank:19,br_pick:19,name:"Christian Anderson",pos:"PG",age:19,dyn:54,proj3:59,note:"Best shooter in late-1st PG group. Natural playmaker. 2022 FIBA U16 EuroBasket MVP."}},
-  {pick:19,slot:"2.07",round:2,team:"Flint Tropics",orig:"Monstars",prospect:{rank:18,br_pick:17,name:"Morez Johnson Jr.",pos:"PF",age:19,dyn:56,proj3:60,note:"Isaiah Stewart comp. 7-foot-3.5 wingspan. Surprised at combine."}},
-  {pick:20,slot:"2.08",round:2,team:"WesternU Dolphins",orig:"Liberty City Penetrators",prospect:{rank:20,br_pick:21,name:"Bennett Stirtz",pos:"PG",age:22,dyn:52,proj3:56,note:"Malcolm Brogdon comp. Elite IQ, shotmaking, finishing at Iowa. Age is only knock."}},
-  {pick:21,slot:"2.09",round:2,team:"Lincoln Railsplitters",orig:null,prospect:{rank:21,br_pick:25,name:"Dailyn Swain",pos:"SF",age:20,dyn:50,proj3:56,note:"RISER: 6-foot-8 SF, 3.5ast/g, scoring and defensive playmaking. Herb Jones comp."}},
-  {pick:22,slot:"2.10",round:2,team:"East High Wildcats",orig:"Richmond Oilers",prospect:{rank:23,br_pick:23,name:"Jayden Quaintance",pos:"PF",age:18,dyn:47,proj3:54,note:"Elite defensive prospect. 7-foot-5 wingspan. ACL recovery adds risk."}},
-  {pick:23,slot:"2.11",round:2,team:"Mt. Vernon Smelters",orig:"LA Knights",prospect:{rank:22,br_pick:24,name:"Meleek Thomas",pos:"SG",age:19,dyn:49,proj3:55,note:"Shooting versatility, pull-up game, floater. Chose to stay in draft."}},
-  {pick:24,slot:"2.12",round:2,team:"Hickory Huskers",orig:"WesternU Dolphins",prospect:{rank:24,br_pick:22,name:"Chris Cenac Jr.",pos:"PF",age:18,dyn:46,proj3:52,note:"19yo with 7-foot-5 wingspan, shooting confidence and motor. Nine picks for Hickory."}},
-  // Round 3
-  {pick:25,slot:"3.01",round:3,team:"East High Wildcats",orig:null,prospect:{rank:25,br_pick:20,name:"Allen Graves",pos:"PF",age:19,dyn:44,proj3:48,note:"Confirmed staying in draft. Analytics darling — 3pt PF, offensive glass, disruption."}},
-  {pick:26,slot:"3.02",round:3,team:"Richmond Oilers",orig:"No Limit Soldiers",prospect:{rank:26,br_pick:28,name:"Isaiah Evans",pos:"SF",age:19,dyn:41,proj3:46,note:"Off-ball shooter with improving attacking game. Jordan Hawkins comp."}},
-  {pick:27,slot:"3.03",round:3,team:"Mt. Vernon Smelters",orig:null,prospect:{rank:27,br_pick:27,name:"Koa Peat",pos:"PF",age:19,dyn:40,proj3:45,note:"Chose to stay in draft. Physical interior scorer, passing. Rui Hachimura comp."}},
-  {pick:28,slot:"3.04",round:3,team:"Hickory Huskers",orig:null,prospect:{rank:28,br_pick:30,name:"Henri Veesaar",pos:"C",age:21,dyn:39,proj3:44,note:"7-footer who hit 40 threes. Elite inside-out scorer. Vucevic comp."}},
-  {pick:29,slot:"3.05",round:3,team:"Dimmsdale Ballhogs",orig:null,prospect:{rank:29,br_pick:29,name:"Sergio de Larrea",pos:"SG",age:20,dyn:38,proj3:43,note:"Confirmed in draft. Back-to-back EuroLeague seasons with accurate 3s."}},
-  {pick:30,slot:"3.06",round:3,team:"Flint Tropics",orig:null,prospect:{rank:30,br_pick:31,name:"Zuby Ejiofor",pos:"PF",age:21,dyn:37,proj3:42,note:"Energy, physicality, 2.1blk/g. First-round grade for certain teams."}},
-  {pick:31,slot:"3.07",round:3,team:"Flint Tropics",orig:"Monstars",prospect:{rank:31,br_pick:33,name:"Tarris Reed Jr.",pos:"C",age:22,dyn:36,proj3:41,note:"9% blk, 13% ORB at UConn. Ready-now rim protector. Day'Ron Sharpe comp."}},
-  {pick:32,slot:"3.08",round:3,team:"Liberty City Penetrators",orig:null,prospect:{rank:32,br_pick:33,name:"Joshua Jefferson",pos:"PF",age:22,dyn:35,proj3:40,note:"Point forward. 16.4/7.4/4.8 college line. Kyle Anderson comp."}},
-  {pick:33,slot:"3.09",round:3,team:"Lincoln Railsplitters",orig:null,prospect:{rank:33,br_pick:30,name:"Alex Karaban",pos:"PF",age:22,dyn:34,proj3:38,note:"Confirmed staying in draft. Stretch big, reliable 3pt shooter. Analytics darling."}},
-  {pick:34,slot:"3.10",round:3,team:"Richmond Oilers",orig:null,prospect:{rank:60,br_pick:60,name:"TBD",pos:"?",age:20,dyn:18,proj3:22,note:"Late-round developmental stash pick — prospect TBD closer to draft night."}},
-  {pick:35,slot:"3.11",round:3,team:"Flint Tropics",orig:"LA Knights",prospect:{rank:60,br_pick:60,name:"TBD",pos:"?",age:20,dyn:18,proj3:22,note:"Late-round developmental stash pick — prospect TBD closer to draft night."}},
-  {pick:36,slot:"3.12",round:3,team:"Dimmsdale Ballhogs",orig:"WesternU Dolphins",prospect:{rank:60,br_pick:60,name:"TBD",pos:"?",age:20,dyn:18,proj3:22,note:"Late-round developmental stash pick — prospect TBD closer to draft night."}},
+  {pick:1,slot:"1.01",round:1,team:"East High Wildcats",orig:null,prospect:{rank:2,br_pick:3,name:"Cameron Boozer",pos:"PF",age:18,dyn:85,proj3:87,note:"Walking DD machine. Kevin Love comp."}},
+  {pick:2,slot:"1.02",round:1,team:"No Limit Soldiers",orig:null,prospect:{rank:1,br_pick:1,name:"AJ Dybantsa",pos:"SF",age:19,dyn:88,proj3:90,note:"Consensus #1."}},
+  {pick:3,slot:"1.03",round:1,team:"No Limit Soldiers",orig:"Mt. Vernon Smelters",prospect:{rank:3,br_pick:2,name:"Darryn Peterson",pos:"SG",age:19,dyn:86,proj3:88,note:"Anthony Edwards comp."}},
+  {pick:4,slot:"1.04",round:1,team:"No Limit Soldiers",orig:"Hickory Huskers",prospect:{rank:5,br_pick:5,name:"Keaton Wagler",pos:"PG",age:19,dyn:80,proj3:82,note:"Best PG in the class."}},
+  {pick:5,slot:"1.05",round:1,team:"Hickory Huskers",orig:"Dimmsdale Ballhogs",prospect:{rank:4,br_pick:4,name:"Caleb Wilson",pos:"PF",age:19,dyn:82,proj3:84,note:"Hickory cornerstone."}},
+  {pick:6,slot:"1.06",round:1,team:"No Limit Soldiers",orig:"Flint Tropics",prospect:{rank:7,br_pick:6,name:"Darius Acuff Jr.",pos:"PG",age:18,dyn:76,proj3:79,note:"Damian Lillard comp."}},
+  {pick:7,slot:"1.07",round:1,team:"No Limit Soldiers",orig:"Monstars",prospect:{rank:6,br_pick:12,name:"Aday Mara",pos:"C",age:20,dyn:78,proj3:80,note:"FANTASY STEAL: BR #12, Fantasy #6."}},
+  {pick:8,slot:"1.08",round:1,team:"LA Knights",orig:"Liberty City Penetrators",prospect:{rank:8,br_pick:7,name:"Kingston Flemings",pos:"PG",age:19,dyn:74,proj3:77,note:"De'Aaron Fox comp."}},
+  {pick:9,slot:"1.09",round:1,team:"Lincoln Railsplitters",orig:null,prospect:{rank:9,br_pick:8,name:"Mikel Brown Jr.",pos:"SG",age:20,dyn:72,proj3:75,note:"Set ACC freshman scoring record."}},
+  {pick:10,slot:"1.10",round:1,team:"Hickory Huskers",orig:"Richmond Oilers",prospect:{rank:10,br_pick:9,name:"Brayden Burries",pos:"SG",age:20,dyn:70,proj3:73,note:"Derrick White comp."}},
+  {pick:11,slot:"1.11",round:1,team:"Hickory Huskers",orig:"LA Knights",prospect:{rank:11,br_pick:10,name:"Nate Ament",pos:"SF",age:19,dyn:68,proj3:71,note:"High-upside 6-foot-9.5 wing."}},
+  {pick:12,slot:"1.12",round:1,team:"Mt. Vernon Smelters",orig:"WesternU Dolphins",prospect:{rank:12,br_pick:13,name:"Yaxel Lendeborg",pos:"PF",age:23,dyn:66,proj3:68,note:"Aaron Gordon comp. Ready-now."}},
+  {pick:13,slot:"2.01",round:2,team:"East High Wildcats",orig:null,prospect:{rank:13,br_pick:11,name:"Karim Lopez",pos:"PF",age:19,dyn:65,proj3:68,note:"Franz Wagner comp from NBL."}},
+  {pick:14,slot:"2.02",round:2,team:"Monstars",orig:"No Limit Soldiers",prospect:{rank:14,br_pick:14,name:"Labaron Philon",pos:"PG",age:20,dyn:63,proj3:67,note:"Dejounte Murray comp."}},
+  {pick:15,slot:"2.03",round:2,team:"Dimmsdale Ballhogs",orig:"Mt. Vernon Smelters",prospect:{rank:16,br_pick:18,name:"Hannes Steinbach",pos:"C",age:19,dyn:59,proj3:63,note:"Best rebounder in class."}},
+  {pick:16,slot:"2.04",round:2,team:"Hickory Huskers",orig:null,prospect:{rank:15,br_pick:16,name:"Ebuka Okorie",pos:"PG",age:19,dyn:60,proj3:64,note:"Elite creation and rim pressure."}},
+  {pick:17,slot:"2.05",round:2,team:"LA Knights",orig:"Dimmsdale Ballhogs",prospect:{rank:17,br_pick:15,name:"Cameron Carr",pos:"SG",age:20,dyn:58,proj3:62,note:"Three-and-D floor."}},
+  {pick:18,slot:"2.06",round:2,team:"Hickory Huskers",orig:"Flint Tropics",prospect:{rank:19,br_pick:19,name:"Christian Anderson",pos:"PG",age:19,dyn:54,proj3:59,note:"Best shooter in late-1st PG group."}},
+  {pick:19,slot:"2.07",round:2,team:"Flint Tropics",orig:"Monstars",prospect:{rank:18,br_pick:17,name:"Morez Johnson Jr.",pos:"PF",age:19,dyn:56,proj3:60,note:"Isaiah Stewart comp."}},
+  {pick:20,slot:"2.08",round:2,team:"WesternU Dolphins",orig:"Liberty City Penetrators",prospect:{rank:20,br_pick:21,name:"Bennett Stirtz",pos:"PG",age:22,dyn:52,proj3:56,note:"Malcolm Brogdon comp."}},
+  {pick:21,slot:"2.09",round:2,team:"Lincoln Railsplitters",orig:null,prospect:{rank:21,br_pick:25,name:"Dailyn Swain",pos:"SF",age:20,dyn:50,proj3:56,note:"6-foot-8 Swiss Army knife."}},
+  {pick:22,slot:"2.10",round:2,team:"East High Wildcats",orig:"Richmond Oilers",prospect:{rank:23,br_pick:23,name:"Jayden Quaintance",pos:"PF",age:18,dyn:47,proj3:54,note:"Elite defensive prospect."}},
+  {pick:23,slot:"2.11",round:2,team:"Mt. Vernon Smelters",orig:"LA Knights",prospect:{rank:22,br_pick:24,name:"Meleek Thomas",pos:"SG",age:19,dyn:49,proj3:55,note:"Shooting versatility, pull-up game."}},
+  {pick:24,slot:"2.12",round:2,team:"Hickory Huskers",orig:"WesternU Dolphins",prospect:{rank:24,br_pick:22,name:"Chris Cenac Jr.",pos:"PF",age:18,dyn:46,proj3:52,note:"19yo, 7-foot-5 wingspan."}},
+  {pick:25,slot:"3.01",round:3,team:"East High Wildcats",orig:null,prospect:{rank:25,br_pick:20,name:"Allen Graves",pos:"PF",age:19,dyn:44,proj3:48,note:"Analytics darling. Confirmed in draft."}},
+  {pick:26,slot:"3.02",round:3,team:"Richmond Oilers",orig:"No Limit Soldiers",prospect:{rank:26,br_pick:28,name:"Isaiah Evans",pos:"SF",age:19,dyn:41,proj3:46,note:"Three-and-D specialist."}},
+  {pick:27,slot:"3.03",round:3,team:"Mt. Vernon Smelters",orig:null,prospect:{rank:27,br_pick:27,name:"Koa Peat",pos:"PF",age:19,dyn:40,proj3:45,note:"Chose to stay in draft."}},
+  {pick:28,slot:"3.04",round:3,team:"Hickory Huskers",orig:null,prospect:{rank:28,br_pick:30,name:"Henri Veesaar",pos:"C",age:21,dyn:39,proj3:44,note:"7-footer who hit 40 threes."}},
+  {pick:29,slot:"3.05",round:3,team:"Dimmsdale Ballhogs",orig:null,prospect:{rank:29,br_pick:29,name:"Sergio de Larrea",pos:"SG",age:20,dyn:38,proj3:43,note:"Back-to-back EuroLeague seasons."}},
+  {pick:30,slot:"3.06",round:3,team:"Flint Tropics",orig:null,prospect:{rank:30,br_pick:31,name:"Zuby Ejiofor",pos:"PF",age:21,dyn:37,proj3:42,note:"2.1 blk/g, first-round grade."}},
+  {pick:31,slot:"3.07",round:3,team:"Flint Tropics",orig:"Monstars",prospect:{rank:31,br_pick:33,name:"Tarris Reed Jr.",pos:"C",age:22,dyn:36,proj3:41,note:"Ready-now rim protector."}},
+  {pick:32,slot:"3.08",round:3,team:"Liberty City Penetrators",orig:null,prospect:{rank:32,br_pick:33,name:"Joshua Jefferson",pos:"PF",age:22,dyn:35,proj3:40,note:"Point forward, Kyle Anderson comp."}},
+  {pick:33,slot:"3.09",round:3,team:"Lincoln Railsplitters",orig:null,prospect:{rank:33,br_pick:30,name:"Alex Karaban",pos:"PF",age:22,dyn:34,proj3:38,note:"Confirmed in draft. Stretch big."}},
+  {pick:34,slot:"3.10",round:3,team:"Richmond Oilers",orig:null,prospect:{rank:60,br_pick:60,name:"TBD",pos:"?",age:20,dyn:18,proj3:22,note:"Late-round stash."}},
+  {pick:35,slot:"3.11",round:3,team:"Flint Tropics",orig:"LA Knights",prospect:{rank:60,br_pick:60,name:"TBD",pos:"?",age:20,dyn:18,proj3:22,note:"Late-round stash."}},
+  {pick:36,slot:"3.12",round:3,team:"Dimmsdale Ballhogs",orig:"WesternU Dolphins",prospect:{rank:60,br_pick:60,name:"TBD",pos:"?",age:20,dyn:18,proj3:22,note:"Late-round stash."}}
 ];
 
 var SCORE_EXPLANATIONS = {
@@ -1167,143 +1160,40 @@ const TEAM_PROFILES = {
 // ── 2026 DRAFT PROSPECTS (Dizzle Dynasty Rankings 4.0, May 2026) ─────────────
 // Dynasty value derived from rank + college stats + format fit + age
 // Format fit weights: pts(1) reb(1.25) ast(1.5) stl(2) blk(2) 3pm(0.5) to(-0.5) DD(+3)
-// ── 2026 DRAFT PROSPECTS — 33 confirmed prospects ─────────────────────────────
-// Source: NBA.com/draft/2026/prospects + confirmed 2026 declarants (post June 13 deadline)
-// Luigi Suigo withdrew. Cameron Boozer confirmed in draft.
-// Fantasy ranking: pts(1) ast(1.5) reb(1.25) stl(2) blk(2) 3pm(0.5) to(-0.5) DD(+3) TD(+5)
 var DRAFT_PROSPECTS = [
-  {id:"dp1", rank:1, br_pick:1, name:"AJ Dybantsa", pos:"SF", college:"BYU", age:19,
-   dyn:88,proj27:86,proj3:90,proj5:92,
-   comp:"Jaylen Brown",
-   note:"25.5ppg, elite footwork, fewest holes of any prospect. Can\'t-lose option at #1 for the Wizards."},
-  {id:"dp2", rank:2, br_pick:3, name:"Cameron Boozer", pos:"PF", college:"Duke", age:18,
-   dyn:85,proj27:83,proj3:87,proj5:89,
-   comp:"Kevin Love",
-   note:"Walking DD machine — 22.5/10.2/4.1 season line. Best multi-cat big in the class."},
-  {id:"dp3", rank:3, br_pick:2, name:"Darryn Peterson", pos:"SG", college:"Kansas", age:19,
-   dyn:86,proj27:84,proj3:88,proj5:90,
-   comp:"Anthony Edwards",
-   note:"Off-ball scoring, shooting range and defensive quickness. Back on HS tape shows more on-ball juice than shown at Kansas."},
-  {id:"dp4", rank:4, br_pick:4, name:"Caleb Wilson", pos:"PF", college:"North Carolina", age:19,
-   dyn:82,proj27:80,proj3:84,proj5:86,
-   comp:"Antonio McDyess",
-   note:"Some scouts prefer Wilson to Boozer. Explosion + ball-handling PF with defensive range Boozer lacks."},
-  {id:"dp5", rank:5, br_pick:5, name:"Keaton Wagler", pos:"PG", college:"Illinois", age:19,
-   dyn:80,proj27:78,proj3:82,proj5:84,
-   comp:"Jamal Murray",
-   note:"Crafty creation, special shotmaking, high IQ. Best PG fit alongside Darius Garland in LA."},
-  {id:"dp6", rank:6, br_pick:12, name:"Aday Mara", pos:"C", college:"Michigan", age:20,
-   dyn:78,proj27:76,proj3:80,proj5:82,
-   comp:"Andrew Bogut",
-   note:"7-foot-3 with 12% block rate AND 19% assist rate — unicorn format fit. Fantasy riser from BR #12."},
-  {id:"dp7", rank:7, br_pick:6, name:"Darius Acuff Jr.", pos:"PG", college:"Arkansas", age:18,
-   dyn:76,proj27:74,proj3:79,proj5:81,
-   comp:"Damian Lillard",
-   note:"23.5ppg, swept SEC POY and ROY. First freshman since Pete Maravich to lead SEC in total points AND assists."},
-  {id:"dp8", rank:8, br_pick:7, name:"Kingston Flemings", pos:"PG", college:"Houston", age:19,
-   dyn:74,proj27:72,proj3:77,proj5:79,
-   comp:"De'Aaron Fox",
-   note:"Led combine in 3pt drill (19/25), top-5 athletic scores. Efficient initiator at Houston."},
-  {id:"dp9", rank:9, br_pick:8, name:"Mikel Brown Jr.", pos:"SG", college:"Louisville", age:20,
-   dyn:72,proj27:70,proj3:75,proj5:77,
-   comp:"Coby White",
-   note:"Set ACC freshman scoring record (45pts vs NC State). Creativity and shotmaking elite when healthy."},
-  {id:"dp10", rank:10, br_pick:9, name:"Brayden Burries", pos:"SG", college:"Arizona", age:20,
-   dyn:70,proj27:68,proj3:73,proj5:75,
-   comp:"Derrick White",
-   note:"Strong physical profile, three-level scoring, low-maintenance style. Not expected outside top 10."},
-  {id:"dp11", rank:11, br_pick:10, name:"Nate Ament", pos:"SF", college:"Tennessee", age:19,
-   dyn:68,proj27:66,proj3:71,proj5:73,
-   comp:"Will Riley",
-   note:"6-foot-9.5 barefoot, plays on and off ball. High-upside traits swaying evaluators past inefficient execution."},
-  {id:"dp12", rank:12, br_pick:13, name:"Yaxel Lendeborg", pos:"PF", college:"Michigan", age:23,
-   dyn:66,proj27:64,proj3:68,proj5:70,
-   comp:"Aaron Gordon",
-   note:"National champion, Aaron Gordon comp. Versatility and high-impact minutes proven. Ready-now."},
-  {id:"dp13", rank:13, br_pick:11, name:"Karim Lopez", pos:"PF", college:"NZ Breakers", age:19,
-   dyn:65,proj27:63,proj3:68,proj5:70,
-   comp:"Franz Wagner",
-   note:"Age + NBL production + 6-foot-8 frame + expanding versatility. Immediate AND long-term value."},
-  {id:"dp14", rank:14, br_pick:14, name:"Labaron Philon", pos:"PG", college:"Alabama", age:20,
-   dyn:63,proj27:61,proj3:67,proj5:69,
-   comp:"Dejounte Murray",
-   note:"Creative scorer, improved shooting/finishing. Difficult to find holes in statistical profile."},
-  {id:"dp15", rank:15, br_pick:16, name:"Ebuka Okorie", pos:"PG", college:"Stanford", age:19,
-   dyn:60,proj27:58,proj3:64,proj5:66,
-   comp:"Dennis Schroder",
-   note:"7th in nation scoring as freshman. Creation, rim pressure and shotmaking. 6-foot-7.75 wingspan."},
-  {id:"dp16", rank:16, br_pick:18, name:"Hannes Steinbach", pos:"C", college:"Washington", age:19,
-   dyn:59,proj27:57,proj3:63,proj5:65,
-   comp:"Zach Collins",
-   note:"Best rebounder in class (11.8 rpg). 7-foot-2 wingspan, soft hands, footwork. 18 made 3s."},
-  {id:"dp17", rank:17, br_pick:15, name:"Cameron Carr", pos:"SG", college:"Baylor", age:20,
-   dyn:58,proj27:56,proj3:62,proj5:64,
-   comp:"Devin Vassell",
-   note:"30pts in combine scrimmage. 7-foot wingspan. Three-and-D floor with translatable shotmaking."},
-  {id:"dp18", rank:18, br_pick:17, name:"Morez Johnson Jr.", pos:"PF", college:"Michigan", age:19,
-   dyn:56,proj27:54,proj3:60,proj5:62,
-   comp:"Isaiah Stewart",
-   note:"Surprised at combine: 17/25 3pt drill, 39.5 vertical, top lane agility. Physicality translates."},
-  {id:"dp19", rank:19, br_pick:19, name:"Christian Anderson", pos:"PG", college:"Texas Tech", age:19,
-   dyn:54,proj27:52,proj3:59,proj5:61,
-   comp:"Darius Garland",
-   note:"Best shooter in late-first PG group. Natural playmaker. 2022 FIBA U16 EuroBasket MVP."},
-  {id:"dp20", rank:20, br_pick:21, name:"Bennett Stirtz", pos:"PG", college:"Iowa", age:22,
-   dyn:52,proj27:50,proj3:56,proj5:58,
-   comp:"Malcolm Brogdon",
-   note:"Elite production at Drake AND Iowa. IQ, shotmaking, finishing touch translate. Age only knock."},
-  {id:"dp21", rank:21, br_pick:25, name:"Dailyn Swain", pos:"SF", college:"Texas", age:20,
-   dyn:50,proj27:48,proj3:56,proj5:58,
-   comp:"Herb Jones",
-   note:"6-foot-8 SF, 3.5ast/g, scoring off dribble and defensive playmaking. Swiss Army knife."},
-  {id:"dp22", rank:22, br_pick:24, name:"Meleek Thomas", pos:"SG", college:"Arkansas", age:19,
-   dyn:49,proj27:47,proj3:55,proj5:57,
-   comp:"Jordan Clarkson",
-   note:"Shooting versatility, pull-up game, floater. Defended well at Arkansas alongside Acuff."},
-  {id:"dp23", rank:23, br_pick:23, name:"Jayden Quaintance", pos:"PF", college:"Kentucky", age:18,
-   dyn:47,proj27:45,proj3:54,proj5:56,
-   comp:"Derrick Favors",
-   note:"Defensive-minded big with elite length. High-level rim protector. ACL recovery adds risk."},
-  {id:"dp24", rank:24, br_pick:22, name:"Chris Cenac Jr.", pos:"PF", college:"Houston", age:18,
-   dyn:46,proj27:44,proj3:52,proj5:54,
-   comp:"Bobby Portis",
-   note:"19yo with 7-foot-5 wingspan, shooting confidence and motor. Raw but tools are elite."},
-  {id:"dp25", rank:25, br_pick:20, name:"Allen Graves", pos:"PF", college:"Santa Clara", age:19,
-   dyn:44,proj27:42,proj3:48,proj5:50,
-   comp:"Boris Diaw",
-   note:"Analytics darling — 3pt PF, offensive glass, defensive disruption. Confirmed staying in draft."},
-  {id:"dp26", rank:26, br_pick:28, name:"Isaiah Evans", pos:"SF", college:"Duke", age:19,
-   dyn:41,proj27:39,proj3:46,proj5:48,
-   comp:"Jordan Hawkins",
-   note:"Off-ball shooter with improving attacking game. Three-and-D specialist."},
-  {id:"dp27", rank:27, br_pick:27, name:"Koa Peat", pos:"PF", college:"Arizona", age:19,
-   dyn:40,proj27:38,proj3:45,proj5:47,
-   comp:"Rui Hachimura",
-   note:"Chose to stay in draft. Physical interior scorer, passing. 17.2/7.6 in NCAA tourney to Final Four."},
-  {id:"dp28", rank:28, br_pick:30, name:"Henri Veesaar", pos:"C", college:"North Carolina", age:21,
-   dyn:39,proj27:37,proj3:44,proj5:46,
-   comp:"Nikola Vucevic",
-   note:"7-footer who hit 40 threes. Elite inside-out scorer. Vucevic comp."},
-  {id:"dp29", rank:29, br_pick:29, name:"Sergio de Larrea", pos:"SG", college:"Valencia (EL)", age:20,
-   dyn:38,proj27:36,proj3:43,proj5:45,
-   comp:"Bogdan Bogdanovic",
-   note:"Back-to-back EuroLeague seasons with accurate 3s and strong playmaking rates."},
-  {id:"dp30", rank:30, br_pick:31, name:"Zuby Ejiofor", pos:"PF", college:"St. John's", age:21,
-   dyn:37,proj27:35,proj3:42,proj5:44,
-   comp:"Jonathan Mogbo",
-   note:"Energy, physicality, 2.1blk/g defensive activity. First-round grade for certain teams."},
-  {id:"dp31", rank:31, br_pick:33, name:"Tarris Reed Jr.", pos:"C", college:"Connecticut", age:22,
-   dyn:36,proj27:34,proj3:41,proj5:43,
-   comp:"Day'Ron Sharpe",
-   note:"9% blk, 13% ORB, 15% ast at UConn. Ready-now rim protector. Grad eligible."},
-  {id:"dp32", rank:32, br_pick:33, name:"Joshua Jefferson", pos:"PF", college:"Iowa State", age:22,
-   dyn:35,proj27:33,proj3:40,proj5:42,
-   comp:"Kyle Anderson",
-   note:"Point forward, versatile skillset. 16.4/7.4/4.8 college line. Grad eligible."},
-  {id:"dp33", rank:33, br_pick:30, name:"Alex Karaban", pos:"PF", college:"Connecticut", age:22,
-   dyn:34,proj27:32,proj3:38,proj5:40,
-   comp:"Nemanja Bjelica",
-   note:"Confirmed staying in draft. Stretch big, reliable 3pt shooter. Analytics darling."}
+  {id:"dp1",rank:1,br_pick:1,name:"AJ Dybantsa",pos:"SF",college:"BYU",age:19,dyn:88,proj27:86,proj3:90,proj5:92,comp:"Jaylen Brown",note:"Consensus #1 overall. 25.5ppg at BYU, fewest holes of any prospect in the class."},
+  {id:"dp2",rank:2,br_pick:3,name:"Cameron Boozer",pos:"PF",college:"Duke",age:18,dyn:85,proj27:83,proj3:87,proj5:89,comp:"Kevin Love",note:"Walking DD machine — 22.5/10.2/4.1. Best multi-cat big in the class. Confirmed in draft."},
+  {id:"dp3",rank:3,br_pick:2,name:"Darryn Peterson",pos:"SG",college:"Kansas",age:19,dyn:86,proj27:84,proj3:88,proj5:90,comp:"Anthony Edwards",note:"Anthony Edwards comp. Off-ball scoring, shooting range, defensive quickness."},
+  {id:"dp4",rank:4,br_pick:4,name:"Caleb Wilson",pos:"PF",college:"North Carolina",age:19,dyn:82,proj27:80,proj3:84,proj5:86,comp:"Antonio McDyess",note:"Explosion + ball-handling PF. Some scouts prefer Wilson to Boozer."},
+  {id:"dp5",rank:5,br_pick:5,name:"Keaton Wagler",pos:"PG",college:"Illinois",age:19,dyn:80,proj27:78,proj3:82,proj5:84,comp:"Jamal Murray",note:"Best PG in the class. Crafty creation, special shotmaking, high IQ."},
+  {id:"dp6",rank:6,br_pick:12,name:"Aday Mara",pos:"C",college:"Michigan",age:20,dyn:78,proj27:76,proj3:80,proj5:82,comp:"Andrew Bogut",note:"FANTASY STEAL: 7-foot-3 with 12% block rate AND 19% assist rate."},
+  {id:"dp7",rank:7,br_pick:6,name:"Darius Acuff Jr.",pos:"PG",college:"Arkansas",age:18,dyn:76,proj27:74,proj3:79,proj5:81,comp:"Damian Lillard",note:"First freshman since Maravich to lead SEC in total points AND assists."},
+  {id:"dp8",rank:8,br_pick:7,name:"Kingston Flemings",pos:"PG",college:"Houston",age:19,dyn:74,proj27:72,proj3:77,proj5:79,comp:"De'Aaron Fox",note:"Led combine in 3pt drill. Top-5 athleticism scores."},
+  {id:"dp9",rank:9,br_pick:8,name:"Mikel Brown Jr.",pos:"SG",college:"Louisville",age:20,dyn:72,proj27:70,proj3:75,proj5:77,comp:"Coby White",note:"Set ACC freshman scoring record (45 pts). Elite creativity when healthy."},
+  {id:"dp10",rank:10,br_pick:9,name:"Brayden Burries",pos:"SG",college:"Arizona",age:20,dyn:70,proj27:68,proj3:73,proj5:75,comp:"Derrick White",note:"Three-level scoring, downhill attacking, defensive tools."},
+  {id:"dp11",rank:11,br_pick:10,name:"Nate Ament",pos:"SF",college:"Tennessee",age:19,dyn:68,proj27:66,proj3:71,proj5:73,comp:"Will Riley",note:"6-foot-9.5 barefoot, plays on and off ball. High-upside wing traits."},
+  {id:"dp12",rank:12,br_pick:13,name:"Yaxel Lendeborg",pos:"PF",college:"Michigan",age:23,dyn:66,proj27:64,proj3:68,proj5:70,comp:"Aaron Gordon",note:"National champion, Aaron Gordon comp. Ready-now multi-cat PF."},
+  {id:"dp13",rank:13,br_pick:11,name:"Karim Lopez",pos:"PF",college:"NZ Breakers",age:19,dyn:65,proj27:63,proj3:68,proj5:70,comp:"Franz Wagner",note:"Franz Wagner comp from NBL. Physical 4, shooting, ball-screen IQ."},
+  {id:"dp14",rank:14,br_pick:14,name:"Labaron Philon",pos:"PG",college:"Alabama",age:20,dyn:63,proj27:61,proj3:67,proj5:69,comp:"Dejounte Murray",note:"Creative scorer, improved shooting and finishing. Confirmed in draft."},
+  {id:"dp15",rank:15,br_pick:16,name:"Ebuka Okorie",pos:"PG",college:"Stanford",age:19,dyn:60,proj27:58,proj3:64,proj5:66,comp:"Dennis Schroder",note:"7th in nation scoring as freshman. Elite creation and rim pressure."},
+  {id:"dp16",rank:16,br_pick:18,name:"Hannes Steinbach",pos:"C",college:"Washington",age:19,dyn:59,proj27:57,proj3:63,proj5:65,comp:"Zach Collins",note:"Best rebounder in class (11.8 rpg). 7-foot-2 wingspan, 18 made 3s."},
+  {id:"dp17",rank:17,br_pick:15,name:"Cameron Carr",pos:"SG",college:"Baylor",age:20,dyn:58,proj27:56,proj3:62,proj5:64,comp:"Devin Vassell",note:"30 pts in combine scrimmage. 7-foot wingspan. Three-and-D floor."},
+  {id:"dp18",rank:18,br_pick:17,name:"Morez Johnson Jr.",pos:"PF",college:"Michigan",age:19,dyn:56,proj27:54,proj3:60,proj5:62,comp:"Isaiah Stewart",note:"Surprised at combine: 17/25 3pt drill, 39.5 vertical."},
+  {id:"dp19",rank:19,br_pick:19,name:"Christian Anderson",pos:"PG",college:"Texas Tech",age:19,dyn:54,proj27:52,proj3:59,proj5:61,comp:"Darius Garland",note:"Best shooter in late-1st PG group. 2022 FIBA U16 EuroBasket MVP."},
+  {id:"dp20",rank:20,br_pick:21,name:"Bennett Stirtz",pos:"PG",college:"Iowa",age:22,dyn:52,proj27:50,proj3:56,proj5:58,comp:"Malcolm Brogdon",note:"Elite IQ, shotmaking, finishing at Iowa. Age is only knock."},
+  {id:"dp21",rank:21,br_pick:25,name:"Dailyn Swain",pos:"SF",college:"Texas",age:20,dyn:50,proj27:48,proj3:56,proj5:58,comp:"Herb Jones",note:"6-foot-8 SF, 3.5 ast/g, scoring and defensive playmaking."},
+  {id:"dp22",rank:22,br_pick:24,name:"Meleek Thomas",pos:"SG",college:"Arkansas",age:19,dyn:49,proj27:47,proj3:55,proj5:57,comp:"Jordan Clarkson",note:"Shooting versatility, pull-up game, floater. Chose to stay in draft."},
+  {id:"dp23",rank:23,br_pick:23,name:"Jayden Quaintance",pos:"PF",college:"Kentucky",age:18,dyn:47,proj27:45,proj3:54,proj5:56,comp:"Derrick Favors",note:"Elite defensive prospect. 7-foot-5 wingspan. Confirmed in draft."},
+  {id:"dp24",rank:24,br_pick:22,name:"Chris Cenac Jr.",pos:"PF",college:"Houston",age:18,dyn:46,proj27:44,proj3:52,proj5:54,comp:"Bobby Portis",note:"19yo with 7-foot-5 wingspan, shooting confidence and motor."},
+  {id:"dp25",rank:25,br_pick:20,name:"Allen Graves",pos:"PF",college:"Santa Clara",age:19,dyn:44,proj27:42,proj3:48,proj5:50,comp:"Boris Diaw",note:"Analytics darling. 3pt PF, offensive glass, disruption. Confirmed in draft."},
+  {id:"dp26",rank:26,br_pick:28,name:"Isaiah Evans",pos:"SF",college:"Duke",age:19,dyn:41,proj27:39,proj3:46,proj5:48,comp:"Jordan Hawkins",note:"Off-ball shooter with improving attacking game. Three-and-D specialist."},
+  {id:"dp27",rank:27,br_pick:27,name:"Koa Peat",pos:"PF",college:"Arizona",age:19,dyn:40,proj27:38,proj3:45,proj5:47,comp:"Rui Hachimura",note:"Chose to stay in draft. Physical interior scorer with passing ability."},
+  {id:"dp28",rank:28,br_pick:30,name:"Henri Veesaar",pos:"C",college:"North Carolina",age:21,dyn:39,proj27:37,proj3:44,proj5:46,comp:"Nikola Vucevic",note:"7-footer who hit 40 threes. Elite inside-out scorer. Vucevic comp."},
+  {id:"dp29",rank:29,br_pick:29,name:"Sergio de Larrea",pos:"SG",college:"Valencia",age:20,dyn:38,proj27:36,proj3:43,proj5:45,comp:"Bogdan Bogdanovic",note:"Back-to-back EuroLeague seasons with accurate 3s and playmaking."},
+  {id:"dp30",rank:30,br_pick:31,name:"Zuby Ejiofor",pos:"PF",college:"St. John's",age:21,dyn:37,proj27:35,proj3:42,proj5:44,comp:"Jonathan Mogbo",note:"Energy, physicality, 2.1 blk/g. First-round grade for select teams."},
+  {id:"dp31",rank:31,br_pick:33,name:"Tarris Reed Jr.",pos:"C",college:"Connecticut",age:22,dyn:36,proj27:34,proj3:41,proj5:43,comp:"Day'Ron Sharpe",note:"9% blk, 13% ORB at UConn. Ready-now rim protector."},
+  {id:"dp32",rank:32,br_pick:33,name:"Joshua Jefferson",pos:"PF",college:"Iowa State",age:22,dyn:35,proj27:33,proj3:40,proj5:42,comp:"Kyle Anderson",note:"Point forward. 16.4/7.4/4.8 college line. Grad eligible."},
+  {id:"dp33",rank:33,br_pick:30,name:"Alex Karaban",pos:"PF",college:"Connecticut",age:22,dyn:34,proj27:32,proj3:38,proj5:40,comp:"Nemanja Bjelica",note:"Confirmed in draft. Stretch big, reliable 3pt shooter. Analytics darling."}
 ];
 
 
@@ -1576,29 +1466,19 @@ function teamScore(ps,key,teamName){
 
 // ── SLEEPER FETCH WITH MULTI-PROXY FALLBACK ──────────────────────────────────
 // Try direct first (works if browser allows), then multiple CORS proxies
-const PROXIES=[
-  "https://corsproxy.io/?",           // Most reliable free proxy
-  "https://api.allorigins.win/raw?url=", // Good fallback
-  "https://thingproxy.freeboard.io/fetch/", // Extra fallback
-  "",  // Direct last (usually blocked by CORS)
-];
+const PROXIES=["https://corsproxy.io/?url=","https://api.allorigins.win/raw?url=","https://cors.lol/?url=",""];
 
 async function fetchWithFallback(url){
-  for(let i=0;i<PROXIES.length;i++){
-    const proxy=PROXIES[i];
-    const fullUrl=proxy?(proxy+encodeURIComponent(url)):url;
+  for(var i=0;i<PROXIES.length;i++){
+    var proxy=PROXIES[i];
+    var fullUrl=proxy?(proxy+encodeURIComponent(url)):url;
     try{
-      const ctrl=new AbortController();
-      const timer=setTimeout(()=>ctrl.abort(),12000);
-      const res=await fetch(fullUrl,{signal:ctrl.signal,mode:"cors",cache:"no-cache"});
+      var ctrl=new AbortController();
+      var timer=setTimeout(function(){ctrl.abort();},10000);
+      var res=await fetch(fullUrl,{signal:ctrl.signal,cache:"no-cache"});
       clearTimeout(timer);
-      if(res.ok){
-        const data=await res.json();
-        return data;
-      }
-    }catch(e){
-      // try next proxy
-    }
+      if(res.ok){return await res.json();}
+    }catch(e){}
   }
   throw new Error("All proxies failed");
 }
@@ -1627,39 +1507,31 @@ async function fetchSleeperPlayerNames(ids){
   }catch(e){return {};}
 }
 
-var SLOT_VALUES_2026={"1":{"1":85,"2":75,"3":68,"4":62,"5":56,"6":50,"7":44,"8":38,"9":32,"10":26,"11":20,"12":14},"2":{"1":28,"2":24,"3":21,"4":18,"5":16,"6":14,"7":12,"8":11,"9":10,"10":9,"11":8,"12":7},"3":{"1":14,"2":12,"3":11,"4":10,"5":9,"6":8,"7":7,"8":6,"9":5,"10":5,"11":4,"12":4}};
-var YEAR_DISCOUNT={"2026":1.0,"2027":0.90,"2028":0.80};
-function rosterIdToTeam(id,map){return map[id]||("Roster #"+id);}
-function calcPickValue(season,round,slot,origTeam){
-  var rd=String(round),yr=String(season),disc=YEAR_DISCOUNT[yr]||0.75;
-  if(slot&&SLOT_VALUES_2026[rd]&&SLOT_VALUES_2026[rd][String(slot)])return Math.round(SLOT_VALUES_2026[rd][String(slot)]*disc);
-  var est=({1:44,2:20,3:8}[round])||20;return Math.round(est*disc);
-}
-async function fetchTradedPicks(rosterUserMap){
+var SLOT_V={"1":{"1":85,"2":75,"3":68,"4":62,"5":56,"6":50,"7":44,"8":38,"9":32,"10":26,"11":20,"12":14},"2":{"1":28,"2":24,"3":21,"4":18,"5":16,"6":14,"7":12,"8":11,"9":10,"10":9,"11":8,"12":7},"3":{"1":14,"2":12,"3":11,"4":10,"5":9,"6":8,"7":7,"8":6,"9":5,"10":5,"11":4,"12":4}};
+var YEAR_D={"2026":1.0,"2027":0.90,"2028":0.80};
+function calcPV(season,round){return Math.round(({1:44,2:20,3:8}[round]||20)*(YEAR_D[String(season)]||0.75));}
+async function fetchTradedPicks(rMap){
   try{
     var picks=await fetchSleeper("/league/"+LEAGUE_ID+"/traded_picks");
     if(!Array.isArray(picks))return null;
     var byOwner={};
-    picks.forEach(function(pick){
-      var ownerId=pick.owner_id;
-      if(!byOwner[ownerId])byOwner[ownerId]=[];
-      var origTeam=rosterIdToTeam(pick.roster_id,rosterUserMap);
-      var ownerTeam=rosterIdToTeam(ownerId,rosterUserMap);
-      var val=calcPickValue(pick.season,pick.round,null,origTeam);
-      byOwner[ownerId].push({year:parseInt(pick.season),rd:pick.round,slot:null,
-        orig:origTeam!==ownerTeam?origTeam:null,val:val,
-        label:pick.season+" Rd"+pick.round+(origTeam!==ownerTeam?" ("+origTeam+")":"")});
+    picks.forEach(function(pk){
+      if(!byOwner[pk.owner_id])byOwner[pk.owner_id]=[];
+      var orig=rMap[String(pk.roster_id)]||("R#"+pk.roster_id);
+      var own=rMap[String(pk.owner_id)]||("R#"+pk.owner_id);
+      byOwner[pk.owner_id].push({year:parseInt(pk.season),rd:pk.round,orig:orig!==own?orig:null,
+        val:calcPV(pk.season,pk.round),label:pk.season+" Rd"+pk.round+(orig!==own?" ("+orig+")":"")});
     });
     var result={};
     Object.keys(TEAMS_META).forEach(function(t){result[t]={picks:[],totalValue:0,summary:"Live"};});
     Object.keys(byOwner).forEach(function(rid){
-      var tn=rosterIdToTeam(rid,rosterUserMap);
+      var tn=rMap[String(rid)];if(!tn)return;
       if(!result[tn])result[tn]={picks:[],totalValue:0,summary:"Live"};
       byOwner[rid].forEach(function(p){result[tn].picks.push(p);result[tn].totalValue+=p.val;});
-      result[tn].picks.sort(function(a,b){return a.year!==b.year?a.year-b.year:a.rd-b.rd;});
+      result[tn].picks.sort(function(a,b){return a.year-b.year||a.rd-b.rd;});
     });
     return result;
-  }catch(e){console.warn("Pick fetch failed:",e.message);return null;}
+  }catch(e){return null;}
 }
 
 async function refreshRosters(customPlayers){
@@ -1672,13 +1544,20 @@ async function refreshRosters(customPlayers){
   allKnown.forEach(p=>{idMap[p.id]=p;});
   const userById={};
   users.forEach(u=>{userById[u.user_id]=u;});
+  const rMap={};
+  rosters.forEach(roster=>{
+    const user=userById[roster.owner_id];if(!user)return;
+    const dn=user.display_name;
+    const tn=TEAM_NAMES.find(t=>TEAMS_META[t].owner.toLowerCase()===dn.toLowerCase())||(user.metadata&&user.metadata.team_name)||dn;
+    rMap[String(roster.roster_id)]=tn;
+  });
   const updated=[];
   const unknownIds=new Set();
   rosters.forEach(roster=>{
     const user=userById[roster.owner_id];
     if(!user)return;
     const dn=user.display_name;
-    const teamName=TEAM_NAMES.find(t=>TEAMS_META[t].owner.toLowerCase()===dn.toLowerCase())||(user.metadata&&user.metadata.team_name)||dn;
+    const teamName=rMap[String(roster.roster_id)]||dn;
     const starterIds=new Set((roster.starters||[]).map(String).filter(id=>id!=="0"));
     const taxiIds=new Set((roster.taxi||[]).map(String));
     const irIds=new Set((roster.reserve||[]).map(String));
@@ -1702,21 +1581,17 @@ async function refreshRosters(customPlayers){
       }
     });
   }
-  const livePicks=await fetchTradedPicks(rosterUserMap);
+  const livePicks=await fetchTradedPicks(rMap);
   const standings={};
-  rosters.forEach(function(roster){
-    var tn=rosterUserMap[String(roster.roster_id)];
-    if(!tn)return;
-    var s=roster.settings||{};
+  rosters.forEach(function(r2){
+    var tn=rMap[String(r2.roster_id)];if(!tn)return;
+    var s=r2.settings||{};
     standings[tn]={w:s.wins||0,l:s.losses||0,pf:Math.round(((s.fpts||0)+(s.fpts_decimal||0)*0.01)*100)/100,pa:Math.round(((s.fpts_against||0)+(s.fpts_against_decimal||0)*0.01)*100)/100};
   });
   return{players:updated,unknownCount:unknownIds.size,livePicks:livePicks,standings:standings};
 }
 
-function formatCST(date){
-  if(!date) return "—";
-  try{return new Date(date).toLocaleString("en-US",{timeZone:"America/Chicago",month:"short",day:"numeric",hour:"numeric",minute:"2-digit",hour12:true})+" CT";}catch(e){return String(date);}
-}
+function formatCST(d){if(!d)return"—";try{return new Date(d).toLocaleString("en-US",{timeZone:"America/Chicago",month:"short",day:"numeric",hour:"numeric",minute:"2-digit",hour12:true})+" CT";}catch(e){return String(d);}}
 
 // ── STYLE HELPERS ─────────────────────────────────────────────────────────────
 const GS=g=>g.startsWith("A")?{bg:"#dcfce7",fg:"#14532d"}:g.startsWith("B")?{bg:"#dbeafe",fg:"#1e3a8a"}:g.startsWith("C")?{bg:"#fef9c3",fg:"#713f12"}:{bg:"#fee2e2",fg:"#7f1d1d"};
@@ -1812,27 +1687,32 @@ function AddPlayerModal({existing,onSave,onClose}){
 }
 
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
-function CountdownBanner({lastRefresh,lastStatsRefresh,livePickData}){
-  const [countdown,setCountdown]=useState("");
+function CountdownBanner(props){
+  var lastRefresh=props.lastRefresh,lastStatsRefresh=props.lastStatsRefresh,livePickData=props.livePickData;
+  var cdState=useState(""),cd=cdState[0],setCd=cdState[1];
   useEffect(function(){
-    function getNext(){var now=new Date(),next=new Date(now);next.setUTCHours(11,0,0,0);if(next<=now)next.setUTCDate(next.getUTCDate()+1);return next;}
-    function update(){var diff=getNext()-new Date(),hh=Math.floor(diff/3600000),mm=Math.floor((diff%3600000)/60000),ss=Math.floor((diff%60000)/1000);setCountdown((hh>0?hh+"h ":"")+(mm>0||hh>0?mm+"m ":"")+ss+"s");}
-    update();var t=setInterval(update,1000);return function(){clearInterval(t);};
+    function tick(){var now=new Date(),next=new Date(now);next.setUTCHours(11,0,0,0);if(next<=now)next.setUTCDate(next.getUTCDate()+1);var d=next-now;setCd(Math.floor(d/3600000)+"h "+Math.floor((d%3600000)/60000)+"m "+Math.floor((d%60000)/1000)+"s");}
+    tick();var t=setInterval(tick,1000);return function(){clearInterval(t);};
   },[]);
-  return h("div",{style:{background:"linear-gradient(90deg,#1e3a8a,#2563eb)",borderRadius:10,padding:"8px 16px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}},
-    h("div",{style:{display:"flex",alignItems:"center",gap:8}},
-      h("span",{style:{fontSize:14}},"🔄"),
-      h("div",null,
-        h("div",{style:{fontSize:12,fontWeight:700,color:"#fff"}},"Next Auto-Refresh in: ",h("span",{style:{fontSize:14,fontWeight:800,color:"#93c5fd",fontFamily:"monospace",letterSpacing:1}},countdown)),
-        h("div",{style:{fontSize:11,color:"rgba(255,255,255,0.65)"}},"Runs daily at 5:00 AM CT · Syncs Sleeper rosters + live NBA stats")
-      )
-    ),
-    h("div",{style:{display:"flex",gap:10,alignItems:"center"}},
-      lastRefresh&&h("div",{style:{textAlign:"right"}},h("div",{style:{fontSize:10,color:"rgba(255,255,255,0.6)"}},"Last roster sync"),h("div",{style:{fontSize:11,fontWeight:700,color:"#93c5fd"}},formatCST(lastRefresh))),
-      lastStatsRefresh&&h("div",{style:{textAlign:"right"}},h("div",{style:{fontSize:10,color:"rgba(255,255,255,0.6)"}},"Last stats sync"),h("div",{style:{fontSize:11,fontWeight:700,color:"#86efac"}},formatCST(lastStatsRefresh))),
-      livePickData&&h("div",{style:{background:"rgba(255,255,255,0.15)",borderRadius:6,padding:"4px 10px",textAlign:"center"}},h("div",{style:{fontSize:10,color:"rgba(255,255,255,0.6)"}},"Draft capital"),h("div",{style:{fontSize:11,fontWeight:800,color:"#86efac"}},"✓ LIVE"))
-    )
-  );
+  var isLocal=typeof window!=="undefined"&&window.location.protocol==="file:";
+  return h("div",null,
+    isLocal&&h("div",{style:{background:"#fef3c7",border:"1px solid #f59e0b",borderRadius:8,padding:"8px 14px",marginBottom:8,fontSize:12,color:"#92400e",display:"flex",alignItems:"center",gap:8}},
+      h("span",null,"Warning: "),
+      h("span",null,h("b",null,"Use GitHub Pages for live data: "),
+        h("a",{href:"https://mmcweeny95.github.io/hoop-heads",target:"_blank",style:{color:"#1d4ed8",fontWeight:700}},"mmcweeny95.github.io/hoop-heads"),
+        " -- Refresh Rosters does not work from a downloaded file.")),
+    h("div",{style:{background:"linear-gradient(90deg,#1e3a8a,#2563eb)",borderRadius:10,padding:"8px 16px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}},
+      h("div",{style:{display:"flex",alignItems:"center",gap:8}},
+        h("span",{style:{fontSize:14}},"[Auto-Refresh]"),
+        h("div",null,
+          h("div",{style:{fontSize:12,fontWeight:700,color:"#fff"}},"Next Auto-Refresh in: ",h("span",{style:{fontSize:14,fontWeight:800,color:"#93c5fd",fontFamily:"monospace"}},cd)),
+          h("div",{style:{fontSize:11,color:"rgba(255,255,255,0.65)"}},"Runs daily at 5:00 AM CT - Syncs Sleeper rosters + live NBA stats"))),
+      h("div",{style:{display:"flex",gap:10,alignItems:"center"}},
+        lastRefresh&&h("div",{style:{textAlign:"right"}},h("div",{style:{fontSize:10,color:"rgba(255,255,255,0.6)"}},"Last roster sync"),h("div",{style:{fontSize:11,fontWeight:700,color:"#93c5fd"}},formatCST(lastRefresh))),
+        lastStatsRefresh&&h("div",{style:{textAlign:"right"}},h("div",{style:{fontSize:10,color:"rgba(255,255,255,0.6)"}},"Last stats sync"),h("div",{style:{fontSize:11,fontWeight:700,color:"#86efac"}},formatCST(lastStatsRefresh))),
+        livePickData&&h("div",{style:{background:"rgba(255,255,255,0.15)",borderRadius:6,padding:"4px 10px",textAlign:"center"}},
+          h("div",{style:{fontSize:10,color:"rgba(255,255,255,0.6)"}},"Draft capital"),
+          h("div",{style:{fontSize:11,fontWeight:800,color:"#86efac"}},"LIVE")))));
 }
 
 function App(){
@@ -1973,28 +1853,7 @@ function App(){
       setTimeout(function(){setRefreshMsg("");},6000);
       setShowManual(false);
     }catch(e){
-      // Auto-retry once with a different approach
-      setRefreshMsg("⚠ CORS issue — retrying...");
-      await new Promise(function(r){setTimeout(r,1500);});
-      try{
-        // Try with a direct fetch with no-cors mode to at least check connectivity
-        const directTest=await fetch("https://corsproxy.io/?"+encodeURIComponent("https://api.sleeper.app/v1/league/"+LEAGUE_ID),{cache:"no-cache"});
-        if(directTest.ok){
-          // Proxy is working, retry full refresh
-          const result2=await refreshRosters(customPlayers);
-          setLiveRosters(result2.players);
-          setLastRefresh(new Date());
-          if(result2.livePicks)setLivePickData(result2.livePicks);
-          if(result2.standings&&Object.keys(result2.standings).length>0)setLiveStandings(result2.standings);
-          setRefreshMsg("✓ Rosters synced · "+result2.players.length+" players");
-        }else{
-          setRefreshMsg("⚠ Refresh failed — click again or use manual paste.");
-          setShowManual(true);
-        }
-      }catch(e2){
-        setRefreshMsg("⚠ Connection failed — click Refresh Rosters again to retry.");
-        setShowManual(true);
-      }
+      setRefreshMsg("⚠ CORS blocked — open mmcweeny95.github.io/hoop-heads for live data.");
     }
     setRefreshing(false);
   }
@@ -3222,27 +3081,50 @@ function App(){
 
   // ── PLAYOFF PREDICTOR TAB ─────────────────────────────────────────────────
   
-  // ── TRADE TAB ─────────────────────────────────────────────────────────────
+  // ── TRADE TAB ───────────────────────────────────────────────────────────────────────────
   function TradeTab(){
-    const [searchA,setSearchA]=useState(""),searchB_s=useState(""),sideA_s=useState([]),sideB_s=useState([]),teamA_s=useState("All"),teamB_s=useState("All");
-    const [searchB,setSearchB]=searchB_s;const [sideA,setSideA]=sideA_s;const [sideB,setSideB]=sideB_s;const [teamA,setTeamA]=teamA_s;const [teamB,setTeamB]=teamB_s;
-    const allPlayers=useMemo(function(){
-      var pool=activeRosters.filter(function(p){return !p.isDraft&&p.slot!=="ir";}).map(function(p){var fp=getFPLive(p.name);return{id:p.id+p.team,name:p.name,team:p.team,pos:p.pos||"?",age:p.age||0,dyn:p[dk]||0,fp:fp||null,slot:p.slot,isPick:false};});
-      Object.keys(TEAMS_META).forEach(function(tn){var d=getPickData(tn,livePickData);(d.picks||[]).forEach(function(pk,i){pool.push({id:"pick_"+tn+"_"+i,name:pk.label,team:tn,pos:"PICK",age:null,dyn:pk.val,fp:null,slot:"pick",isPick:true,pickVal:pk.val});});});
-      return pool;
+    var sa=useState(""),sb=useState(""),sA=useState([]),sB=useState([]),tA=useState("All"),tB=useState("All");
+    var searchA=sa[0],setSearchA=sa[1],searchB=sb[0],setSearchB=sb[1];
+    var sideA=sA[0],setSideA=sA[1],sideB=sB[0],setSideB=sB[1];
+    var teamA=tA[0],setTeamA=tA[1],teamB=tB[0],setTeamB=tB[1];
+    var allP=useMemo(function(){
+      var p=activeRosters.filter(function(x){return !x.isDraft&&x.slot!=="ir";}).map(function(x){return{id:x.id+x.team,name:x.name,team:x.team,pos:x.pos||"?",age:x.age||0,dyn:x[dk]||0,fp:getFPLive(x.name),isPick:false};});
+      Object.keys(TEAMS_META).forEach(function(tn){var d=getPickData(tn,livePickData);(d.picks||[]).forEach(function(pk,i){p.push({id:"pk_"+tn+"_"+i,name:pk.label,team:tn,pos:"PICK",age:null,dyn:pk.val,fp:null,isPick:true});});});
+      return p;
     },[activeRosters,dk,livePickData]);
-    function filterPool(search,tf,excl){var q=search.toLowerCase();return allPlayers.filter(function(p){if(excl.indexOf(p.id)>=0)return false;return(tf==="All"||p.team===tf)&&(!q||p.name.toLowerCase().includes(q)||p.team.toLowerCase().includes(q));}).sort(function(a,b){return b.dyn-a.dyn;});}
+    function filt(q,tf,excl){q=q.toLowerCase();return allP.filter(function(p){return excl.indexOf(p.id)<0&&(tf==="All"||p.team===tf)&&(!q||p.name.toLowerCase().includes(q));}).sort(function(a,b){return b.dyn-a.dyn;});}
     var exA=sideA.map(function(p){return p.id;}),exB=sideB.map(function(p){return p.id;});
-    var poolA=filterPool(searchA,teamA,exA.concat(exB)),poolB=filterPool(searchB,teamB,exA.concat(exB));
+    var pA=filt(searchA,teamA,exA.concat(exB)),pB=filt(searchB,teamB,exA.concat(exB));
     var totA=sideA.reduce(function(s,p){return s+p.dyn;},0),totB=sideB.reduce(function(s,p){return s+p.dyn;},0);
     var diff=totA-totB,winner=diff>5?"Team B wins":diff<-5?"Team A wins":"Fair trade";
     var wc=diff>5?"#15803d":diff<-5?"#b91c1c":"#ca8a04",wb=diff>5?"#dcfce7":diff<-5?"#fee2e2":"#fef9c3";
-    function addTo(side,setSide,p){setSide(function(prev){return prev.concat([p]);});}
-    function remFrom(setSide,id){setSide(function(prev){return prev.filter(function(p){return p.id!==id;});});}
-    function PoolRow(p,side,setSide){var ds=DS(p.dyn);return h("div",{key:p.id,onClick:function(){addTo(side,setSide,p);},style:{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",cursor:"pointer",borderBottom:"1px solid #f3f4f6"},onMouseOver:function(e){e.currentTarget.style.background="#f0f9ff";},onMouseOut:function(e){e.currentTarget.style.background="transparent";}},h("div",{style:{minWidth:36,textAlign:"center",padding:"2px 6px",borderRadius:6,background:ds.bg,color:ds.fg,fontSize:12,fontWeight:800,flexShrink:0}},p.dyn),h("div",{style:{flex:1,minWidth:0}},h("div",{style:{fontSize:13,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",color:p.isPick?"#7e22ce":"#111"}},p.name),!p.isPick&&h("div",{style:{fontSize:11,color:"#9ca3af"}},p.pos+" · Age "+(p.age||"?")+(p.fp?" · "+p.fp+" FP/G":""))),h("span",{style:{fontSize:18,color:"#9ca3af",flexShrink:0}},"+"));}
-    function Chip(p,setSide){var ds=DS(p.dyn);return h("div",{key:p.id,style:{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",background:"#f9fafb",borderRadius:8,marginBottom:4,border:"1.5px solid #e5e7eb"}},h("div",{style:{minWidth:38,textAlign:"center",padding:"3px 6px",borderRadius:6,background:ds.bg,color:ds.fg,fontSize:13,fontWeight:800,flexShrink:0}},p.dyn),h("div",{style:{flex:1,minWidth:0}},h("div",{style:{fontSize:13,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.name),!p.isPick&&h("div",{style:{fontSize:11,color:"#9ca3af"}},p.pos+" · Age "+(p.age||"?"))),h("button",{onClick:function(){remFrom(setSide,p.id);},style:{background:"none",border:"none",fontSize:18,cursor:"pointer",color:"#dc2626",flexShrink:0}},"×"));}
-    function SidePanel(label,search,setSearch,tf,setTf,side,setSide,pool){return h("div",{style:{flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:0}},h("div",{style:{fontSize:13,fontWeight:800,color:"#374151",marginBottom:8}},label),h("select",{value:tf,onChange:function(e){setTf(e.target.value);},style:{width:"100%",padding:"7px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13,marginBottom:6,background:"#f9fafb"}},["All"].concat(TEAM_NAMES).map(function(t){return h("option",{key:t},t);})),h("div",{style:{position:"relative",marginBottom:8}},h("input",{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:"Search players or picks...",style:{width:"100%",padding:"8px 10px 8px 32px",borderRadius:8,border:"1.5px solid #e5e7eb",fontSize:13,outline:"none",boxSizing:"border-box"}}),h("span",{style:{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#9ca3af",fontSize:14}},"🔍")),side.length>0&&h("div",{style:{background:"#fff",border:"1.5px solid #2563eb",borderRadius:10,padding:"10px",marginBottom:8}},h("div",{style:{fontSize:10,fontWeight:700,color:"#2563eb",letterSpacing:0.5,marginBottom:6}},"SELECTED"),side.map(function(p){return Chip(p,setSide);}),h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",borderTop:"1px solid #e5e7eb",paddingTop:6,marginTop:4}},h("span",{style:{fontSize:11,color:"#6b7280"}},side.length+" selected"),h("button",{onClick:function(){setSide([]);},style:{fontSize:11,color:"#b91c1c",background:"none",border:"none",cursor:"pointer",fontWeight:600}},"Clear all"))),h("div",{style:{border:"1px solid #e5e7eb",borderRadius:10,overflow:"hidden"}},h("div",{style:{background:"#f9fafb",padding:"6px 10px",fontSize:10,fontWeight:700,color:"#9ca3af",letterSpacing:0.5,borderBottom:"1px solid #e5e7eb",display:"flex",justifyContent:"space-between"}},h("span",null,"AVAILABLE"),h("span",null,pool.length+" results")),h("div",{style:{maxHeight:360,overflowY:"auto"}},pool.length===0?h("div",{style:{padding:"1.5rem",textAlign:"center",color:"#9ca3af",fontSize:13,fontStyle:"italic"}},"No players found"):pool.slice(0,50).map(function(p){return PoolRow(p,side,setSide);}),pool.length>50&&h("div",{style:{padding:"8px",fontSize:11,color:"#9ca3af",textAlign:"center"}},"Showing top 50 — refine search"))));}
-    return h("div",null,h("div",{style:{marginBottom:14}},h("div",{style:{fontSize:16,fontWeight:800,marginBottom:2}},"Dynasty Trade Calculator"),h("div",{style:{fontSize:12,color:"#6b7280"}},"Search and add players or picks to each side")),h("div",{style:{display:"flex",gap:12,flexWrap:"wrap",marginBottom:12}},SidePanel("TEAM A RECEIVES",searchA,setSearchA,teamA,setTeamA,sideA,setSideA,poolA),SidePanel("TEAM B RECEIVES",searchB,setSearchB,teamB,setTeamB,sideB,setSideB,poolB)),(sideA.length>0||sideB.length>0)&&h("div",{style:{background:wb,border:"1.5px solid "+wc,borderRadius:12,padding:"1rem"}},h("div",{style:{display:"flex",gap:12,alignItems:"center",marginBottom:10,flexWrap:"wrap"}},h("div",{style:{flex:1,minWidth:120}},h("div",{style:{display:"flex",justifyContent:"space-between",fontSize:11,color:"#6b7280",marginBottom:3}},h("span",null,"Team A sends"),h("span",{style:{fontWeight:700,color:"#111"}},totA)),h("div",{style:{background:"#e5e7eb",borderRadius:4,height:10,overflow:"hidden"}},h("div",{style:{width:Math.round(totA/Math.max(totA,totB,1)*100)+"%",background:"#f59e0b",height:"100%",borderRadius:4}}))),h("div",{style:{fontSize:22,color:"#9ca3af",flexShrink:0}},"⇄"),h("div",{style:{flex:1,minWidth:120}},h("div",{style:{display:"flex",justifyContent:"space-between",fontSize:11,color:"#6b7280",marginBottom:3}},h("span",null,"Team B sends"),h("span",{style:{fontWeight:700,color:"#111"}},totB)),h("div",{style:{background:"#e5e7eb",borderRadius:4,height:10,overflow:"hidden"}},h("div",{style:{width:Math.round(totB/Math.max(totA,totB,1)*100)+"%",background:"#2563eb",height:"100%",borderRadius:4}})))),h("div",{style:{textAlign:"center"}},h("div",{style:{fontSize:18,fontWeight:800,color:wc,marginBottom:4}},winner),sideA.length>0&&sideB.length>0&&h("div",{style:{fontSize:13,color:"#374151"}},Math.abs(diff)<=5?"Values within 5 pts — fair trade.":diff>0?"Team B gets better deal. Team A overpays by "+diff+" pts.":"Team A gets better deal. Team B overpays by "+Math.abs(diff)+" pts.")),h("div",{style:{textAlign:"center",marginTop:10}},h("button",{onClick:function(){setSideA([]);setSideB([]);setSearchA("");setSearchB("");},style:{padding:"6px 18px",borderRadius:8,border:"1px solid "+wc,background:"#fff",fontSize:12,cursor:"pointer",color:wc,fontWeight:600}},"Reset trade"))));
+    function addP(side,set,p){set(function(prev){return prev.concat([p]);});}
+    function remP(set,id){set(function(prev){return prev.filter(function(x){return x.id!==id;});});}
+    function Row(p,side,set){var ds=DS(p.dyn);return h("div",{key:p.id,onClick:function(){addP(side,set,p);},style:{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",cursor:"pointer",borderBottom:"1px solid #f3f4f6"},onMouseOver:function(e){e.currentTarget.style.background="#f0f9ff";},onMouseOut:function(e){e.currentTarget.style.background="";}},h("div",{style:{minWidth:34,textAlign:"center",padding:"2px 6px",borderRadius:6,background:ds.bg,color:ds.fg,fontSize:12,fontWeight:800}},p.dyn),h("div",{style:{flex:1,minWidth:0}},h("div",{style:{fontSize:13,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",color:p.isPick?"#7e22ce":"#111"}},p.name),!p.isPick&&h("div",{style:{fontSize:11,color:"#9ca3af"}},p.pos+" - "+(p.age||"?")+(p.fp?" - "+p.fp+" FP/G":""))),h("span",{style:{color:"#9ca3af",fontSize:18}},"+"));}
+    function Chip(p,set){var ds=DS(p.dyn);return h("div",{key:p.id,style:{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#f9fafb",borderRadius:8,marginBottom:4,border:"1.5px solid #e5e7eb"}},h("div",{style:{minWidth:34,textAlign:"center",padding:"2px 6px",borderRadius:6,background:ds.bg,color:ds.fg,fontSize:12,fontWeight:800}},p.dyn),h("div",{style:{flex:1,minWidth:0}},h("div",{style:{fontSize:13,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.name),!p.isPick&&h("div",{style:{fontSize:11,color:"#9ca3af"}},p.pos+" - "+(p.age||"?"))),h("button",{onClick:function(){remP(set,p.id);},style:{background:"none",border:"none",fontSize:18,cursor:"pointer",color:"#dc2626"}},"x"));}
+    function Panel(label,srch,setSrch,tf,setTf,side,set,pl){return h("div",{style:{flex:1,minWidth:0}},
+      h("div",{style:{fontSize:13,fontWeight:800,color:"#374151",marginBottom:6}},label),
+      h("select",{value:tf,onChange:function(e){setTf(e.target.value);},style:{width:"100%",padding:"7px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13,marginBottom:6}},["All"].concat(TEAM_NAMES).map(function(t){return h("option",{key:t},t);})),
+      h("input",{value:srch,onChange:function(e){setSrch(e.target.value);},placeholder:"Search players or picks...",style:{width:"100%",padding:"8px 10px",borderRadius:8,border:"1.5px solid #e5e7eb",fontSize:13,marginBottom:8,boxSizing:"border-box",outline:"none"}}),
+      side.length>0&&h("div",{style:{background:"#fff",border:"1.5px solid #2563eb",borderRadius:10,padding:"10px",marginBottom:8}},
+        h("div",{style:{fontSize:10,fontWeight:700,color:"#2563eb",marginBottom:6}},"SELECTED"),
+        side.map(function(p){return Chip(p,set);}),
+        h("button",{onClick:function(){set([]);},style:{fontSize:11,color:"#b91c1c",background:"none",border:"none",cursor:"pointer",marginTop:4}},"Clear all")),
+      h("div",{style:{border:"1px solid #e5e7eb",borderRadius:10,overflow:"hidden",maxHeight:340,overflowY:"auto"}},
+        pl.length===0?h("div",{style:{padding:"1.5rem",textAlign:"center",color:"#9ca3af",fontSize:13}},"No results"):pl.slice(0,50).map(function(p){return Row(p,side,set);})));
+    }
+    return h("div",null,
+      h("div",{style:{marginBottom:12}},h("div",{style:{fontSize:16,fontWeight:800}},"Dynasty Trade Calculator"),h("div",{style:{fontSize:12,color:"#6b7280"}},"Add players and picks to compare dynasty value")),
+      h("div",{style:{display:"flex",gap:12,flexWrap:"wrap",marginBottom:12}},Panel("TEAM A RECEIVES",searchA,setSearchA,teamA,setTeamA,sideA,setSideA,pA),Panel("TEAM B RECEIVES",searchB,setSearchB,teamB,setTeamB,sideB,setSideB,pB)),
+      (sideA.length>0||sideB.length>0)&&h("div",{style:{background:wb,border:"1.5px solid "+wc,borderRadius:12,padding:"1rem"}},
+        h("div",{style:{display:"flex",gap:12,alignItems:"center",marginBottom:8,flexWrap:"wrap"}},
+          h("div",{style:{flex:1}},h("div",{style:{fontSize:11,color:"#6b7280",marginBottom:3,display:"flex",justifyContent:"space-between"}},h("span",null,"Team A sends"),h("span",{style:{fontWeight:700,color:"#111"}},totA)),h("div",{style:{background:"#e5e7eb",borderRadius:4,height:8,overflow:"hidden"}},h("div",{style:{width:Math.round(totA/Math.max(totA,totB,1)*100)+"%",background:"#f59e0b",height:"100%",borderRadius:4}}))),
+          h("span",{style:{fontSize:20,color:"#9ca3af"}}," vs "),
+          h("div",{style:{flex:1}},h("div",{style:{fontSize:11,color:"#6b7280",marginBottom:3,display:"flex",justifyContent:"space-between"}},h("span",null,"Team B sends"),h("span",{style:{fontWeight:700,color:"#111"}},totB)),h("div",{style:{background:"#e5e7eb",borderRadius:4,height:8,overflow:"hidden"}},h("div",{style:{width:Math.round(totB/Math.max(totA,totB,1)*100)+"%",background:"#2563eb",height:"100%",borderRadius:4}})))),
+        h("div",{style:{textAlign:"center"}},
+          h("div",{style:{fontSize:18,fontWeight:800,color:wc,marginBottom:4}},winner),
+          h("div",{style:{fontSize:13,color:"#374151"}},Math.abs(diff)<=5?"Values within 5 pts -- fair trade.":diff>0?"Team B gets better deal (overpay: "+diff+" pts).":"Team A gets better deal (overpay: "+Math.abs(diff)+" pts).")),
+        h("div",{style:{textAlign:"center",marginTop:8}},h("button",{onClick:function(){setSideA([]);setSideB([]);setSearchA("");setSearchB("");},style:{padding:"6px 18px",borderRadius:8,border:"1px solid "+wc,background:"#fff",fontSize:12,cursor:"pointer",color:wc,fontWeight:600}},"Reset"))));
   }
 
 
@@ -3250,17 +3132,9 @@ function App(){
   // ── PLAYOFF PREDICTOR TAB ─────────────────────────────────────────────────
   function PlayoffTab(){
     // ── LIVE W/L STATE (updates via Refresh or manual entry) ─────────────────
-    const [wlRecords, setWlRecords] = useState(function(){
-      var rec = {};
-      Object.keys(TEAMS_META).forEach(function(t){ rec[t]={w:0,l:0}; });
-      return rec;
-    });
-    const [standingsSource,setStandingsSource]=useState("manual");
+    const [wlRecords,setWlRecords]=useState(function(){var r={};Object.keys(TEAMS_META).forEach(function(t){r[t]={w:0,l:0};});return r;});
     useEffect(function(){
-      if(liveStandings&&Object.keys(liveStandings).length>0){
-        var hasData=Object.values(liveStandings).some(function(s){return s.w>0||s.l>0;});
-        if(hasData){setWlRecords(liveStandings);setStandingsSource("sleeper");}
-      }
+      if(liveStandings&&Object.values(liveStandings).some(function(s){return s.w>0||s.l>0;}))setWlRecords(liveStandings);
     },[liveStandings]);
     const [editingWL, setEditingWL] = useState(false);
     const [wlDraft, setWlDraft] = useState(null);
@@ -3800,8 +3674,7 @@ function App(){
                     h("span",{style:{fontSize:12,fontWeight:600}},t.rating)
                   ),
                   h("div",{style:{fontSize:9,color:"#9ca3af",marginTop:1}},
-                    "FP/G: "+(t.ratingDetail&&t.ratingDetail.starterFPG||"—"))
-                ),
+                    "FP/G: "+(t.ratingDetail&&t.ratingDetail.starterFPG||"—")),
                 // FP/G
                 h("td",{style:{padding:"9px 10px",borderBottom:"1px solid #f3f4f6",
                   fontWeight:600,color:"#1d4ed8"}},t.sc.fpSum||"—"),
@@ -3820,19 +3693,24 @@ function App(){
           h("span",{style:{background:"#15803d",color:"#fff",borderRadius:6,padding:"2px 8px",fontSize:11}},"LIVE"),"Sleeper Standings"),
         h("div",{style:{overflowX:"auto"}},
           h("table",{style:{width:"100%",borderCollapse:"collapse",fontSize:13}},
-            h("thead",null,h("tr",{style:{background:"#f9fafb"}},["Rank","Team","W","L","PF","PA","Win %"].map(function(c){return h("th",{key:c,style:{fontSize:11,color:"#6b7280",fontWeight:600,padding:"6px 10px",textAlign:"left",borderBottom:"1px solid #e5e7eb",whiteSpace:"nowrap"}},c);}))),
+            h("thead",null,h("tr",{style:{background:"#f9fafb"}},
+              ["Rank","Team","W","L","PF","PA","Win %"].map(function(c){return h("th",{key:c,style:{fontSize:11,color:"#6b7280",fontWeight:600,padding:"6px 10px",textAlign:"left",borderBottom:"1px solid #e5e7eb",whiteSpace:"nowrap"}},c);}))),
             h("tbody",null,
-              Object.entries(liveStandings).sort(function(a,b){var wa=a[1].w||0,wb=b[1].w||0,ga=wa+(a[1].l||0),gb=wb+(b[1].l||0);return (gb>0?wb/gb:0)-(ga>0?wa/ga:0)||(b[1].pf||0)-(a[1].pf||0);})
-              .map(function(entry,i){var name=entry[0],s=entry[1],gp=(s.w||0)+(s.l||0),pct=gp>0?Math.round((s.w||0)/gp*1000)/10:0,inP=i<6;
-                return h("tr",{key:name,style:{borderLeft:"3px solid "+(inP?"#16a34a":"#dc2626"),background:i%2===0?"#fff":"#fafafa"}},
+              Object.entries(liveStandings)
+              .sort(function(a,b){
+                var wa=a[1].w||0,wb2=b[1].w||0,ga=wa+(a[1].l||0),gb=wb2+(b[1].l||0);
+                return(gb>0?wb2/gb:0)-(ga>0?wa/ga:0)||(b[1].pf||0)-(a[1].pf||0);
+              }).map(function(en,i){
+                var nm=en[0],sv=en[1],gp=(sv.w||0)+(sv.l||0),pct=gp>0?Math.round((sv.w||0)/gp*1000)/10:0,inP=i<6;
+                return h("tr",{key:nm,style:{borderLeft:"3px solid "+(inP?"#16a34a":"#dc2626"),background:i%2===0?"#fff":"#fafafa"}},
                   h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",fontWeight:700,color:inP?"#15803d":"#9ca3af"}},i+1),
-                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",fontWeight:700}},name,h("span",{style:{marginLeft:6,fontSize:9,fontWeight:700,background:inP?"#dcfce7":"#fee2e2",color:inP?"#14532d":"#991b1b",borderRadius:4,padding:"1px 5px"}},inP?"IN":"OUT")),
-                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",fontWeight:800,color:"#15803d",fontSize:15}},s.w||0),
-                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",fontWeight:800,color:"#b91c1c",fontSize:15}},s.l||0),
-                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",color:"#1d4ed8",fontWeight:600}},s.pf||0),
-                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",color:"#6b7280"}},s.pa||0),
-                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",fontWeight:700,color:pct>=50?"#15803d":"#b91c1c"}},gp>0?pct+"%":"—")
-                );
+                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",fontWeight:700}},nm,
+                    h("span",{style:{marginLeft:6,fontSize:9,fontWeight:700,background:inP?"#dcfce7":"#fee2e2",color:inP?"#14532d":"#991b1b",borderRadius:4,padding:"1px 5px"}},inP?"IN":"OUT")),
+                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",fontWeight:800,color:"#15803d",fontSize:15}},sv.w||0),
+                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",fontWeight:800,color:"#b91c1c",fontSize:15}},sv.l||0),
+                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",color:"#1d4ed8",fontWeight:600}},sv.pf||0),
+                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",color:"#6b7280"}},sv.pa||0),
+                  h("td",{style:{padding:"7px 10px",borderBottom:"1px solid #f3f4f6",fontWeight:700,color:pct>=50?"#15803d":"#b91c1c"}},gp>0?pct+"%":"--"));
               })
             )
           )
@@ -3854,23 +3732,20 @@ function App(){
 
 
 
-  // ── MOCK DRAFT TAB ─────────────────────────────────────────────────────────
+  // -- MOCK DRAFT TAB
   function MockDraftTab(){
-    const [rdFilter,setRdFilter]=useState(0);
-    const [teamFilter,setTeamFilter]=useState("All");
-    const [exp,setExp]=useState(null);
-    const filtered=MOCK_DRAFT_2026.filter(function(p){return(rdFilter===0||p.round===rdFilter)&&(teamFilter==="All"||p.team===teamFilter);});
+    var rdf=useState(0),tmf=useState("All"),exs=useState(null);
+    var rdFilter=rdf[0],setRdFilter=rdf[1],teamFilter=tmf[0],setTeamFilter=tmf[1],exp=exs[0],setExp=exs[1];
+    var filtered=MOCK_DRAFT_2026.filter(function(p){return(rdFilter===0||p.round===rdFilter)&&(teamFilter==="All"||p.team===teamFilter);});
     function grade(rank){if(rank<=4)return{l:"A+",bg:"#dcfce7",fg:"#14532d"};if(rank<=8)return{l:"A",bg:"#f0fdf4",fg:"#15803d"};if(rank<=12)return{l:"B+",bg:"#dbeafe",fg:"#1e3a8a"};if(rank<=16)return{l:"B",bg:"#eff6ff",fg:"#1d4ed8"};if(rank<=20)return{l:"C+",bg:"#fef9c3",fg:"#713f12"};return{l:"C",bg:"#f3f4f6",fg:"#6b7280"};}
     return h("div",null,
       h("div",{style:{background:"linear-gradient(135deg,#1e3a8a,#3b82f6)",borderRadius:12,padding:"1.25rem",marginBottom:"1.25rem",color:"#fff"}},
         h("div",{style:{fontSize:18,fontWeight:800,marginBottom:4}},"2026 Mock Draft"),
-        h("div",{style:{fontSize:12,opacity:0.85}},"3 rounds · 36 picks · Based on actual HoopHeads draft capital · Confirmed 2026 prospects only")
-      ),
+        h("div",{style:{fontSize:12,opacity:0.85}},"3 rounds - 36 picks - Confirmed 2026 prospects only")),
       h("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginBottom:"1rem"}},
         [{label:"All",val:0},{label:"Rd 1",val:1},{label:"Rd 2",val:2},{label:"Rd 3",val:3}].map(function(o){return h("button",{key:o.val,onClick:function(){setRdFilter(o.val);},style:{padding:"5px 12px",borderRadius:20,border:"1.5px solid",fontSize:12,cursor:"pointer",fontWeight:rdFilter===o.val?700:400,background:rdFilter===o.val?"#111":"#fff",color:rdFilter===o.val?"#fff":"#374151",borderColor:rdFilter===o.val?"#111":"#e5e7eb"}},o.label);}),
-        h("select",{value:teamFilter,onChange:function(e){setTeamFilter(e.target.value);},style:{padding:"6px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13}},["All"].concat(TEAM_NAMES).map(function(t){return h("option",{key:t},t);}))
-      ),
-      h("div",{style:{overflowX:"auto"}},
+        h("select",{value:teamFilter,onChange:function(e){setTeamFilter(e.target.value);},style:{padding:"6px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13}},["All"].concat(TEAM_NAMES).map(function(t){return h("option",{key:t},t);})))
+      ,h("div",{style:{overflowX:"auto"}},
         h("table",{style:{width:"100%",borderCollapse:"collapse",fontSize:13}},
           h("thead",null,h("tr",{style:{background:"#f9fafb"}},["#","Slot","Team","Prospect","Pos","Age","3yr","Grade"].map(function(c){return h("th",{key:c,style:{fontSize:11,color:"#6b7280",fontWeight:600,padding:"6px 10px",textAlign:"left",borderBottom:"1px solid #e5e7eb",whiteSpace:"nowrap"}},c);}))),
           h("tbody",null,filtered.map(function(dp){
@@ -3880,26 +3755,147 @@ function App(){
             var isTBD=p.name==="TBD";
             return [
               h("tr",{key:dp.pick,onClick:function(){setExp(isExp?null:dp.pick);},style:{cursor:"pointer",background:isExp?"#f0f9ff":rowBg,borderLeft:"3px solid "+(dp.round===1?"#f59e0b":dp.round===2?"#3b82f6":"#9ca3af")},onMouseOver:function(e){if(!isExp)e.currentTarget.style.background="#f0f9ff";},onMouseOut:function(e){if(!isExp)e.currentTarget.style.background=rowBg;}},
-                h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6",fontWeight:800,color:rdC}},"#"+dp.pick,h("span",{style:{marginLeft:4,fontSize:9,color:"#9ca3af"}},[isExp?"▲":"▼"])),
+                h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6",fontWeight:800,color:rdC}},"#"+dp.pick),
                 h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6"}},h("span",{style:{background:dp.round===1?"#fef9c3":dp.round===2?"#dbeafe":"#f3f4f6",color:rdC,borderRadius:6,padding:"2px 8px",fontSize:12,fontWeight:700}},dp.slot)),
                 h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6",fontWeight:700,maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},dp.team,dp.orig&&h("div",{style:{fontSize:10,color:"#9ca3af",fontWeight:400}},"via "+dp.orig.split(" ").slice(-1)[0])),
                 h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6",fontWeight:700,color:isTBD?"#9ca3af":"#111"}},p.name),
-                h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6"}},isTBD?"—":pill("#f3f4f6","#374151",p.pos)),
-                h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6",color:"#15803d",fontWeight:700}},isTBD?"—":p.age),
+                h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6"}},isTBD?"--":pill("#f3f4f6","#374151",p.pos)),
+                h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6",color:"#15803d",fontWeight:700}},isTBD?"--":p.age),
                 h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6"}},isTBD?h("span",{style:{color:"#9ca3af"}},"TBD"):pill(DS(p.proj3||22).bg,DS(p.proj3||22).fg,p.proj3||22,12)),
-                h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6"}},isTBD?h("span",{style:{color:"#9ca3af"}},"—"):h("span",{style:{background:gr.bg,color:gr.fg,borderRadius:6,padding:"2px 8px",fontSize:12,fontWeight:800}},gr.l))
-              ),
+                h("td",{style:{padding:"8px 10px",borderBottom:isExp?"none":"1px solid #f3f4f6"}},isTBD?h("span",{style:{color:"#9ca3af"}},"--"):h("span",{style:{background:gr.bg,color:gr.fg,borderRadius:6,padding:"2px 8px",fontSize:12,fontWeight:800}},gr.l))),
               isExp&&h("tr",{key:dp.pick+"_e",style:{background:"#f0f9ff"}},
                 h("td",{colSpan:8,style:{padding:"10px 16px 14px 24px",borderBottom:"2px solid #3b82f6",borderLeft:"3px solid #3b82f6"}},
                   h("div",{style:{fontSize:13,color:"#374151",lineHeight:1.7,background:"#fff",borderRadius:8,padding:"8px 12px",border:"1px solid #bfdbfe"}},p.note||"Draft analysis TBD")))
-            ];}))
+            ];
+          }))
         )
       )
     );
   }
 
+
+  // -- TRADE HISTORY TAB
+  function TradeHistoryTab(){
+    var ls=useState([]),lding=useState(false),err=useState(null),scored=useState([]),scoring=useState(false),srt=useState("fairness");
+    var trades=ls[0],setTrades=ls[1],loading=lding[0],setLoading=lding[1],error=err[0],setError=err[1];
+    var scoredTrades=scored[0],setScoredTrades=scored[1],isScoring=scoring[0],setIsScoring=scoring[1];
+    var sort=srt[0],setSort=srt[1];
+
+    async function loadTrades(){
+      setLoading(true);setError(null);setTrades([]);setScoredTrades([]);
+      try{
+        var allTrades=[];
+        for(var week=1;week<=25;week++){
+          try{
+            var txns=await fetchSleeper("/league/"+LEAGUE_ID+"/transactions/"+week);
+            if(!Array.isArray(txns)||txns.length===0)break;
+            txns.forEach(function(t){if(t.type==="trade"&&t.status==="complete")allTrades.push(t);});
+          }catch(e){break;}
+        }
+        setTrades(allTrades);
+        if(allTrades.length===0)setError("No completed trades found. Make sure Refresh Rosters works first (requires GitHub Pages URL).");
+      }catch(e){setError("Failed: "+e.message);}
+      setLoading(false);
+    }
+
+    async function scoreTrades(){
+      if(!trades.length)return;
+      setIsScoring(true);
+      var rMap={};
+      activeRosters.forEach(function(p){if(p.sleeperPlayerId)rMap[p.sleeperPlayerId]=p;});
+      var results=[];
+      for(var i=0;i<trades.length;i++){
+        var trade=trades[i];
+        var adds=trade.adds||{},drops=trade.drops||{},pickAdds=trade.draft_picks||[];
+        var date=new Date(trade.status_updated||trade.created);
+        var sides={};
+        Object.keys(adds).forEach(function(pid){
+          var rid=String(adds[pid]);if(!sides[rid])sides[rid]={gets:[],gives:[]};
+          var pl=rMap[pid];sides[rid].gets.push(pl?(pl.name+" ("+pl.pos+",age "+(pl.age||"?")+",dyn "+(pl[dk]||"?")+")"):("Player#"+pid));
+        });
+        Object.keys(drops).forEach(function(pid){
+          var rid=String(drops[pid]);if(!sides[rid])sides[rid]={gets:[],gives:[]};
+          var pl=rMap[pid];sides[rid].gives.push(pl?(pl.name+" ("+pl.pos+",age "+(pl.age||"?")+",dyn "+(pl[dk]||"?")+")"):("Player#"+pid));
+        });
+        pickAdds.forEach(function(pk){
+          var rid=String(pk.owner_id);if(!sides[rid])sides[rid]={gets:[],gives:[]};
+          sides[rid].gets.push(pk.season+" Rd"+pk.round+" pick");
+        });
+        var desc=Object.keys(sides).map(function(rid){
+          var s=sides[rid];
+          return "Roster "+rid+" receives ["+s.gets.join("; ")+"] gives ["+s.gives.join("; ")+"]";
+        }).join(" | ");
+        var prompt="Dynasty fantasy basketball trade. Scoring: pts(1) ast(1.5) reb(1.25) stl(2) blk(2) 3pm(0.5) to(-0.5) DD(+3) TD(+5). 12-team league, 3-round rookie draft.\n\nTrade: "+desc+"\n\nReturn ONLY JSON, no markdown:\n{\"score\":75,\"winner\":\"Roster ID or name\",\"loser\":\"Roster ID or name\",\"summary\":\"2 sentence analysis\"}";
+        try{
+          var resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:250,messages:[{role:"user",content:prompt}]})});
+          var data=await resp.json();
+          var txt=(data.content&&data.content[0]&&data.content[0].text)||"{}";
+          var analysis=JSON.parse(txt.replace(/```json|```/g,"").trim());
+          results.push({trade:trade,sides:sides,date:date,analysis:analysis,desc:desc});
+        }catch(e2){
+          results.push({trade:trade,sides:sides,date:date,analysis:{score:50,winner:"?",loser:"?",summary:"Analysis unavailable."},desc:desc});
+        }
+        await new Promise(function(r){setTimeout(r,400);});
+      }
+      setScoredTrades(results);setIsScoring(false);
+    }
+
+    var displayed=sort==="date"
+      ?[...scoredTrades].sort(function(a,b){return b.date-a.date;})
+      :[...scoredTrades].sort(function(a,b){return a.analysis.score-b.analysis.score;});
+
+    function Badge(score){
+      var bg=score>=90?"#dcfce7":score>=75?"#dbeafe":score>=55?"#fef9c3":"#fee2e2";
+      var fg=score>=90?"#14532d":score>=75?"#1e3a8a":score>=55?"#713f12":"#991b1b";
+      var lbl=score>=90?"FAIR":score>=75?"CLOSE":score>=55?"UNEVEN":"LOPSIDED";
+      return h("div",{style:{textAlign:"center",minWidth:70}},
+        h("div",{style:{background:bg,color:fg,borderRadius:8,padding:"6px 10px",fontSize:24,fontWeight:900,fontFamily:"monospace",marginBottom:2}},score),
+        h("div",{style:{fontSize:9,fontWeight:700,color:fg,letterSpacing:0.5}},lbl));
+    }
+
+    return h("div",null,
+      h("div",{style:{background:"linear-gradient(135deg,#1e3a8a,#7c3aed)",borderRadius:12,padding:"1.25rem",marginBottom:"1.25rem",color:"#fff"}},
+        h("div",{style:{fontSize:18,fontWeight:800,marginBottom:4}},"Trade History & AI Fairness Ratings"),
+        h("div",{style:{fontSize:12,opacity:0.85}},"Every trade in HoopHeads history scored 1-100 by Claude AI based on dynasty value, age, and league scoring")),
+      trades.length===0&&!loading&&!error&&h("div",{style:{textAlign:"center",padding:"3rem 1rem"}},
+        h("div",{style:{fontSize:40,marginBottom:12}},"[Trade History]"),
+        h("div",{style:{fontSize:14,color:"#6b7280",marginBottom:20,maxWidth:400,margin:"0 auto 20px"}},"Fetches all trades from HoopHeads history, then scores each one with Claude AI for fairness."),
+        h("button",{onClick:loadTrades,style:{background:"#1e3a8a",color:"#fff",border:"none",borderRadius:10,padding:"14px 32px",fontSize:16,fontWeight:700,cursor:"pointer"}},"Load Trade History")),
+      loading&&h("div",{style:{textAlign:"center",padding:"2rem",color:"#6b7280",fontSize:14}},"Loading trades from Sleeper API..."),
+      error&&h("div",{style:{background:"#fee2e2",border:"1px solid #fca5a5",borderRadius:8,padding:"1rem",color:"#991b1b",fontSize:13,marginBottom:12}},error),
+      trades.length>0&&scoredTrades.length===0&&!isScoring&&h("div",{style:{background:"#f0f9ff",border:"1px solid #bfdbfe",borderRadius:10,padding:"1rem",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}},
+        h("div",null,h("div",{style:{fontWeight:700,color:"#1e3a8a"}},"Found "+trades.length+" completed trades"),h("div",{style:{fontSize:12,color:"#6b7280",marginTop:2}},"Score each one with Claude AI (takes ~"+(trades.length*0.5).toFixed(0)+"s)")),
+        h("button",{onClick:scoreTrades,style:{background:"#7c3aed",color:"#fff",border:"none",borderRadius:10,padding:"10px 24px",fontSize:14,fontWeight:700,cursor:"pointer"}},"Score with AI")),
+      isScoring&&h("div",{style:{background:"#faf5ff",border:"1px solid #c4b5fd",borderRadius:10,padding:"1rem",marginBottom:12,textAlign:"center"}},
+        h("div",{style:{fontSize:14,fontWeight:700,color:"#7c3aed"}},
+          "Analyzing trades... "+scoredTrades.length+" / "+trades.length),
+        h("div",{style:{background:"#e9d5ff",borderRadius:4,height:8,overflow:"hidden",marginTop:8,width:"100%"}},
+          h("div",{style:{width:Math.round(scoredTrades.length/Math.max(trades.length,1)*100)+"%",background:"#7c3aed",height:"100%",transition:"width 0.3s"}}))),
+      scoredTrades.length>0&&h("div",null,
+        h("div",{style:{display:"flex",gap:8,alignItems:"center",marginBottom:12,flexWrap:"wrap"}},
+          h("span",{style:{fontSize:14,fontWeight:700,color:"#374151"}},scoredTrades.length+" trades rated"),
+          h("select",{value:sort,onChange:function(e){setSort(e.target.value);},style:{padding:"6px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13}},
+            h("option",{value:"fairness"},"Most Lopsided First"),
+            h("option",{value:"date"},"Most Recent First")),
+          h("button",{onClick:function(){setScoredTrades([]);},style:{padding:"6px 12px",borderRadius:8,border:"1px solid #e5e7eb",background:"#fff",fontSize:12,cursor:"pointer",color:"#6b7280"}},"Clear & Re-score")),
+        displayed.map(function(item,idx){
+          var a=item.analysis,sc=Math.max(1,Math.min(100,a.score||50));
+          return h("div",{key:idx,style:{display:"flex",gap:12,alignItems:"flex-start",background:idx%2===0?"#fff":"#fafafa",border:"1px solid #e5e7eb",borderRadius:12,padding:"1rem",marginBottom:8,flexWrap:"wrap"}},
+            Badge(sc),
+            h("div",{style:{flex:1,minWidth:200}},
+              h("div",{style:{fontSize:11,color:"#9ca3af",marginBottom:6}},item.date.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})),
+              h("div",{style:{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}},
+                a.winner&&h("span",{style:{background:"#dcfce7",color:"#14532d",borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:700}},"Winner: "+a.winner),
+                a.loser&&h("span",{style:{background:"#fee2e2",color:"#991b1b",borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:700}},"Loser: "+a.loser)),
+              h("div",{style:{fontSize:13,color:"#374151",lineHeight:1.6,background:"#f9fafb",borderRadius:6,padding:"8px 10px",marginBottom:6}},a.summary||""),
+              h("div",{style:{fontSize:11,color:"#9ca3af",fontFamily:"monospace",wordBreak:"break-word"}},item.desc.slice(0,240)+(item.desc.length>240?"...":""))));
+        })
+      )
+    );
+  }
+
   // ── MAIN RENDER ─────────────────────────────────────────────────────────────
-  const tabs=[["teams","Team Rankings"],["players","Player Rankings"],["roster","Roster View"],["compare","Head-to-Head"],["trade","Trade Simulator"],["playoffs","Playoff Predictor"],["draft","Draft Strategy"],["mockdraft","Mock Draft"]];
+  const tabs=[["teams","Team Rankings"],["players","Player Rankings"],["roster","Roster View"],["compare","Head-to-Head"],["trade","Trade Simulator"],["playoffs","Playoff Predictor"],["draft","Draft Strategy"],["mockdraft","Mock Draft"],["tradehistory","Trade History"]];
 
   return h("div",{style:{fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",maxWidth:1020,margin:"0 auto",padding:"1rem 0.75rem",fontSize:14,color:"#111"}},
     // Modals
@@ -3984,7 +3980,8 @@ function App(){
     tab==="trade"&&h(TradeTab),
     tab==="draft"&&h(DraftTab),
     tab==="playoffs"&&h(PlayoffTab),
-    tab==="mockdraft"&&h(MockDraftTab)
+    tab==="mockdraft"&&h(MockDraftTab),
+    tab==="tradehistory"&&h(TradeHistoryTab)
   );
 }
 
