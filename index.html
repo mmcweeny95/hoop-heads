@@ -1828,7 +1828,7 @@ function App(){
       .filter(function(p){return !p.age||p.age<=ageMax;})
       .filter(function(p){
         if(!search)return true;
-        const q=search.toLowerCase();
+        const q=(search||"").toLowerCase();
         return (p.name||"").toLowerCase().includes(q)||(p.team||"").toLowerCase().includes(q)||(p.nba||"").toLowerCase().includes(q)||(p.pos||"").toLowerCase().includes(q);
       })
       .sort(function(a,b){return sortBy==="name"?(a.name||"").localeCompare(b.name||""):getV(b)-getV(a);});
@@ -2435,7 +2435,7 @@ function App(){
       h("div",{style:{display:"flex",flexWrap:"wrap",gap:7,marginBottom:"0.75rem",alignItems:"center"}},
         h("input",{defaultValue:search,
           onInput:function(e){
-            var val=e.target.value;
+            var val=e.target?String(e.target.value||""):"";
             if(window._searchTimer)clearTimeout(window._searchTimer);
             window._searchTimer=setTimeout(function(){setSearch(val);},200);
           },
