@@ -2418,6 +2418,21 @@ function App(){
         .sort(function(a,b){return sortBy==="name"?(a.name||"").localeCompare(b.name||""):getV(b)-getV(a);});
     },[uniqPlayers,posF,slotF,teamF,sortBy,search,ageMax,dk]);
     // ──────────────────────────────────────────────────────────────────────────
+    // Restore focus to search input after re-render if it was active
+    var searchRef=useRef(null);
+    useEffect(function(){
+      var el=document.getElementById("player-search-input");
+      if(el&&searchRef.current&&document.activeElement!==el){
+        el.focus();
+        // Restore cursor to end
+        var len=el.value.length;
+        el.setSelectionRange(len,len);
+      }
+    });
+    const onSearchChange=function(e){
+      searchRef.current=document.activeElement===document.getElementById("player-search-input");
+      setSearch(e.target.value);
+    };
     const [psk,psd,PSortTh,psortRows]=useSortable(sortBy==="dyn"?"dynVal":sortBy,"desc");
     const playersGetVal=function(p){
       var s=STATS[p.name]||{};
@@ -2435,9 +2450,10 @@ function App(){
       h(ProjBar),
       h("div",{style:{display:"flex",flexWrap:"wrap",gap:7,marginBottom:"0.75rem",alignItems:"center"}},
         h("input",{value:search,
-          onChange:function(e){setSearch(e.target.value);},
+          onChange:onSearchChange,
           placeholder:"Search player, team...",
           autoComplete:"off",autoCorrect:"off",autoCapitalize:"off",spellCheck:false,
+          id:"player-search-input",
           style:{padding:"7px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13,minWidth:180,outline:"none"}}),
         sel(posF,setPosF,["All","PG","SG","SF","PF","C"]),
         sel(slotF,setSlotF,["All","starter","bench","taxi","ir"]),
