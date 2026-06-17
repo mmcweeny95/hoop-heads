@@ -1762,12 +1762,6 @@ function App(){
   const [modal,setModal]=useState(null); // player detail
   const [addModal,setAddModal]=useState(null); // null=hidden, {}=new, player=edit
   const [selTeam,setSelTeam]=useState(null);
-  const [search,setSearch]=useState("");
-  const [posF,setPosF]=useState("All");
-  const [slotF,setSlotF]=useState("All");
-  const [teamF,setTeamF]=useState("All");
-  const [sortBy,setSort]=useState("dyn");
-  const [ageMax,setAge]=useState(41);
   // Trade
   const [teamProfile,setTeamProfile]=useState(null);
   const [tradeA,setTradeA]=useState("Liberty City Penetrators");
@@ -1818,21 +1812,6 @@ function App(){
     const s=new Set();
     return activeRosters.filter(function(p){const k=p.id+p.team;if(s.has(k))return false;s.add(k);return true;});
   },[activeRosters]);
-
-  const filteredPlayers=useMemo(function(){
-    const getV=function(p){try{return sortBy==="dyn"?p[dk]||0:sortBy==="fp"?getFPLive(p.name)||0:sortBy==="age"?-(p.age||0):0;}catch(e){return 0;}};
-    return uniqPlayers
-      .filter(function(p){return posF==="All"||p.pos===posF;})
-      .filter(function(p){return slotF==="All"||p.slot===slotF;})
-      .filter(function(p){return teamF==="All"||p.team===teamF;})
-      .filter(function(p){return !p.age||p.age<=ageMax;})
-      .filter(function(p){
-        if(!search)return true;
-        const q=(search||"").toLowerCase();
-        return (p.name||"").toLowerCase().includes(q)||(p.team||"").toLowerCase().includes(q)||(p.nba||"").toLowerCase().includes(q)||(p.pos||"").toLowerCase().includes(q);
-      })
-      .sort(function(a,b){return sortBy==="name"?(a.name||"").localeCompare(b.name||""):getV(b)-getV(a);});
-  },[uniqPlayers,posF,slotF,teamF,sortBy,search,ageMax,dk]);
 
   const [showManual,setShowManual]=useState(false);
   const [manualJson,setManualJson]=useState("");
@@ -2417,6 +2396,28 @@ function App(){
 
   // ── PLAYERS TAB ─────────────────────────────────────────────────────────────
   function PlayersTab(){
+    // ── Player filter state (local so typing only re-renders this tab) ──────
+    const [search,setSearch]=useState("");
+    const [posF,setPosF]=useState("All");
+    const [slotF,setSlotF]=useState("All");
+    const [teamF,setTeamF]=useState("All");
+    const [sortBy,setSort]=useState("dyn");
+    const [ageMax,setAge]=useState(41);
+    const filteredPlayers=useMemo(function(){
+      const getV=function(p){try{return sortBy==="dyn"?p[dk]||0:sortBy==="fp"?getFPLive(p.name)||0:sortBy==="age"?-(p.age||0):0;}catch(e){return 0;}};
+      return uniqPlayers
+        .filter(function(p){return posF==="All"||p.pos===posF;})
+        .filter(function(p){return slotF==="All"||p.slot===slotF;})
+        .filter(function(p){return teamF==="All"||p.team===teamF;})
+        .filter(function(p){return !p.age||p.age<=ageMax;})
+        .filter(function(p){
+          if(!search)return true;
+          const q=(search||"").toLowerCase();
+          return (p.name||"").toLowerCase().includes(q)||(p.team||"").toLowerCase().includes(q)||(p.nba||"").toLowerCase().includes(q)||(p.pos||"").toLowerCase().includes(q);
+        })
+        .sort(function(a,b){return sortBy==="name"?(a.name||"").localeCompare(b.name||""):getV(b)-getV(a);});
+    },[uniqPlayers,posF,slotF,teamF,sortBy,search,ageMax,dk]);
+    // ──────────────────────────────────────────────────────────────────────────
     const [psk,psd,PSortTh,psortRows]=useSortable(sortBy==="dyn"?"dynVal":sortBy,"desc");
     const playersGetVal=function(p){
       var s=STATS[p.name]||{};
@@ -2433,12 +2434,8 @@ function App(){
     return h("div",null,
       h(ProjBar),
       h("div",{style:{display:"flex",flexWrap:"wrap",gap:7,marginBottom:"0.75rem",alignItems:"center"}},
-        h("input",{defaultValue:search,
-          onInput:function(e){
-            var val=e.target?String(e.target.value||""):"";
-            if(window._searchTimer)clearTimeout(window._searchTimer);
-            window._searchTimer=setTimeout(function(){setSearch(val);},200);
-          },
+        h("input",{value:search,
+          onChange:function(e){setSearch(e.target.value);},
           placeholder:"Search player, team...",
           autoComplete:"off",autoCorrect:"off",autoCapitalize:"off",spellCheck:false,
           style:{padding:"7px 10px",borderRadius:8,border:"1px solid #e5e7eb",fontSize:13,minWidth:180,outline:"none"}}),
