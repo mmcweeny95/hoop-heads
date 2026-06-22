@@ -1952,7 +1952,9 @@ function App(){
       const result=await refreshRosters(customPlayers);
       setLiveRosters(result.players);
       setLastRefresh(new Date());
-      if(result.livePicks)setLivePickData(result.livePicks);
+      // Note: livePicks from Sleeper only covers TRADED picks, not all owned picks.
+      // We use hardcoded DRAFT_PICKS instead for accurate capital display.
+      // if(result.livePicks)setLivePickData(result.livePicks); // disabled
       if(result.standings&&Object.keys(result.standings).length>0)setLiveStandings(result.standings);
       const u=result.unknownCount;
       setRefreshMsg(u>0?"✓ Synced · "+result.players.length+" players · "+u+" unknown"+(u>1?"s":"")+" — yellow badges":"✓ Rosters synced · "+result.players.length+" players");
